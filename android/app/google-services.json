@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "628324037080",
+    "project_id": "internationalweek-f1e7d",
+    "storage_bucket": "internationalweek-f1e7d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628324037080:android:2d32006103de1851ddc2ad",
+        "android_client_info": {
+          "package_name": "com.example.internationalweek"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPAo9cfl_8akhr7R3s-J1HV3qAyY71CJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628324037080:android:49756ee015898e4cddc2ad",
+        "android_client_info": {
+          "package_name": "com.example.iw_admin_panel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPAo9cfl_8akhr7R3s-J1HV3qAyY71CJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
