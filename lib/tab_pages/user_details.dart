@@ -27,7 +27,7 @@ class _UserDetailsState extends State<UserDetails> {
       'name': 'Jane Smith',
       'email': 'jane.smith@example.com',
       'role': 'User',
-      'profileImageUrl': 'https://www.gravatar.com/avatar/02484d0c383c8804c4827c85b2246e17?s=200&d=mp&r=g', // Replace with actual image URL
+      'profileImageUrl': 'https://www.gravatar.com/avatar/02484d0c383c8804c4827c85b2246e17?s=200&d=mp&r=g',
     },
     // Add more users here...
   ];
@@ -340,7 +340,7 @@ class _UserDetailsState extends State<UserDetails> {
                                   },
                                   iconSize: 25,
                                   icon: const Icon(Icons.edit),
-                                  color: primaryColorKom,
+                                  color: AppColors.backgroundColor,
                                 ),
                                 IconButton(
                                   onPressed: () {
@@ -360,7 +360,7 @@ class _UserDetailsState extends State<UserDetails> {
                                   },
                                   icon: const Icon(Icons.edit),
                                   iconSize: 25,
-                                  color: primaryColorKom,
+                                  color: AppColors.backgroundColor,
                                 ),
                                 IconButton(
                                   onPressed: () {

@@ -182,7 +182,7 @@ class _ExampleSidebarXState extends State<ExampleSidebarX> {
                   color: Colors.transparent,
                 );
               },
-              label: 'Assesments',
+              label: 'Add Events',
             ),
             SidebarXItem(
               onTap: () {

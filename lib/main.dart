@@ -6,8 +6,9 @@ import 'package:get/get.dart';
 import 'package:iw_admin_panel/sidebar.dart';
 import 'Login_Page.dart';
 import 'colors.dart';
-import 'widgets/firebase_options.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -33,9 +34,10 @@ class MyApp extends StatelessWidget {
       getPages: const [],
       unknownRoute: GetPage(
         name: '/home',
-        page: () => FirebaseAuth.instance.currentUser == null
-            ? const LoginPage()
-            : const HomeMain(),
+        page: () => const HomeMain(),
+        // page: () => FirebaseAuth.instance.currentUser == null
+        //     ? const LoginPage()
+        //     : const HomeMain(),
         binding: BindingsBuilder(() {
           Get.lazyPut(() => UserController());
         }),

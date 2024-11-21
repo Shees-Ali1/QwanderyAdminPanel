@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const redColor = Color.fromRGBO(217, 66, 71, 1);
   static const blueColor = Color.fromRGBO(10, 42, 58, 1);
+  static const lighterBlueColor = Color.fromRGBO(100, 150, 170, 1);
   static const bluegrey = Color.fromRGBO(10, 42, 58, 0.2);
   static const backgroundColor = Color.fromRGBO(255, 255, 255, 1);
   static const greenbutton = Color.fromRGBO(116, 178, 177, 1);

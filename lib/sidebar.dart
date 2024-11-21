@@ -9,7 +9,7 @@ import 'package:iw_admin_panel/sidebar_controller.dart';
 import 'package:iw_admin_panel/tab_pages/read.dart';
 import 'package:iw_admin_panel/tab_pages/user_details.dart';
 
-import 'tab_pages/assessments.dart';
+import 'tab_pages/add_events.dart';
 import 'home_main_admin.dart';
 
 class HomeMain extends StatefulWidget {
@@ -40,7 +40,7 @@ class _HomeMainState extends State<HomeMain> {
                     child: Obx(() => sidebarController.selectedindex.value == 0
                         ? UserDetails()
                         : sidebarController.selectedindex.value == 1
-                        ? Assessments()
+                        ? AddEvents()
                         : sidebarController.selectedindex.value == 2
                         ? Read()
                         : Read()))

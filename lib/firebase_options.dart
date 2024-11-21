@@ -53,12 +53,13 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCQlDU0oUoFIU3NIMF20HZ5jYTpBVlWTF0',
-    appId: '1:552938282575:web:08d8cd038e9b740f6d943a',
-    messagingSenderId: '552938282575',
-    projectId: 'kompanyonapp-c60f8',
-    authDomain: 'kompanyonapp-c60f8.firebaseapp.com',
-    storageBucket: 'kompanyonapp-c60f8.appspot.com',
-    measurementId: 'G-4FEN5BFFDK',
+    apiKey: 'AIzaSyCFKZaegd2Kra2wpQyu-xy2_DNgpBMGI54',
+    appId: '1:379065380713:web:c36200a4f96295cf5957f8',
+    messagingSenderId: '379065380713',
+    projectId: 'quandry-46ed9',
+    authDomain: 'quandry-46ed9.firebaseapp.com',
+    storageBucket: 'quandry-46ed9.firebasestorage.app',
+    measurementId: 'G-Q2N9PNLQ3R',
   );
+
 }
