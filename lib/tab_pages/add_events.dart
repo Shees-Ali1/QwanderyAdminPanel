@@ -68,6 +68,8 @@ class _AddEventsState extends State<AddEvents> {
         'attending': [],
         'attended': [],
         'reviews': [],
+        'event_building': "",
+        'event_organizer': "",
       });
 
       await _firestore.collection('events').doc(docRef.id).update({
