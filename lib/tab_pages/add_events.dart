@@ -52,19 +52,26 @@ class _AddEventsState extends State<AddEvents> {
         return;
       }
 
-      await _firestore.collection('events').add({
+      final docRef = await _firestore.collection('events').add({
         'event_image': eventImageController.text,
         'event_name': eventNameController.text,
         'event_date': eventDateController.text,
         'event_price': price,
+        'event_credits': '',
         'event_location': eventLocationController.text,
         'event_address': eventAddressController.text,
         'event_description': eventDescriptionController.text,
         'created_at': FieldValue.serverTimestamp(),
         'planned': [],
         'following': [],
-        'favorited': [],
+        'favourited': [],
+        'attending': [],
       });
+
+      await _firestore.collection('events').doc(docRef.id).update({
+        'event_id': docRef.id,
+      });
+
 
       Get.snackbar(
         "Success",
