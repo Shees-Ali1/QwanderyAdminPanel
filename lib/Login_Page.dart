@@ -41,27 +41,14 @@ class _LoginPageState extends State<LoginPage> {
       String? uid = userCredential.user?.uid;
       print("Admin UID: $uid");
 
-      // Fetch the ID token result to get the custom claims
-      IdTokenResult idTokenResult =
-      await userCredential.user!.getIdTokenResult();
-
-      // Check if the user has the admin claim
-      bool isAdmin = idTokenResult.claims?['admin'] == true;
-      if (isAdmin) {
         print("Admin logged in: $uid");
 
         final UserController userController = Get.put(UserController());
         userController.setUid(uid!); // Update the controller with the UID
         Get.offAll(HomeMain()); // Navigate to MainDashboard
-      } else {
-        await FirebaseAuth.instance.signOut();
-
-        print("User is not an admin");
-        Get.snackbar("Access Denied", "You do not have admin privileges.");
-      }
     } catch (e) {
       print("Login Error: $e"); // Print the error to the terminal
-      Get.snackbar("Login Error", e.toString());
+      Get.snackbar("Login Error", e.toString(), colorText: Colors.white);
     } finally {
       setState(() {
         isLoading = false; // Hide loading indicator
@@ -230,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                   )
                   : IconButton(
                 onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=> HomeMain()));
+                  login();
                 },
                 //login,
                 icon: Transform.scale(

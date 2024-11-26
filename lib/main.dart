@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iw_admin_panel/controllers/event_controller.dart';
 import 'package:iw_admin_panel/sidebar.dart';
+import 'package:iw_admin_panel/tab_pages/online_support.dart';
 import 'Login_Page.dart';
 import 'colors.dart';
 
@@ -15,6 +17,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  Get.put(EventController());
   runApp(const MyApp());
 }
 

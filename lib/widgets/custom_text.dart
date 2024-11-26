@@ -32,9 +32,8 @@ class AsulCustomText extends StatelessWidget {
       overflow: overflow,
       maxLines: maxLines,
       textAlign: textAlign,
-      style: GoogleFonts.asul(
+      style: GoogleFonts.jost(
         textStyle: TextStyle(
-          fontStyle: FontStyle.italic,
           color: AppColors.backgroundColor,
           fontSize: fontsize,
           fontWeight: fontWeight, // Used fontWeight parameter

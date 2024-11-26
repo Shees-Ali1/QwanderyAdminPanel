@@ -194,7 +194,7 @@ class _ExampleSidebarXState extends State<ExampleSidebarX> {
                   color: Colors.transparent,
                 );
               },
-              label: 'Read',
+              label: 'Edit Events',
             ),
             SidebarXItem(
               onTap: () {
@@ -206,7 +206,7 @@ class _ExampleSidebarXState extends State<ExampleSidebarX> {
                   color: Colors.transparent,
                 );
               },
-              label: 'Responses',
+              label: 'Online Support',
             ),
             SidebarXItem(
               onTap: () {

@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:iw_admin_panel/const/textstyle.dart';
 import '../colors.dart';
 import '../sidebar_controller.dart';
 import '../widgets/custom_text.dart';
@@ -16,21 +18,7 @@ class _UserDetailsState extends State<UserDetails> {
   String searchQuery = '';
   final SidebarController sidebarController =Get.put(SidebarController());
   // Static user data for demonstration (replace with actual data later)
-  final List<Map<String, dynamic>> users = [
-    {
-      'name': 'John Doe',
-      'email': 'john.doe@example.com',
-      'role': 'Admin',
-      'profileImageUrl': 'https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200&d=mp&r=g', // Replace with actual image URL
-    },
-    {
-      'name': 'Jane Smith',
-      'email': 'jane.smith@example.com',
-      'role': 'User',
-      'profileImageUrl': 'https://www.gravatar.com/avatar/02484d0c383c8804c4827c85b2246e17?s=200&d=mp&r=g',
-    },
-    // Add more users here...
-  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +159,7 @@ class _UserDetailsState extends State<UserDetails> {
                   ),
                   Expanded(
                     child: AsulCustomText(
-                      text: 'Role',
+                      text: 'Profile',
                       fontsize: 18,
                       fontWeight: FontWeight.w600,
                       textAlign: TextAlign.center,
@@ -195,193 +183,234 @@ class _UserDetailsState extends State<UserDetails> {
                 ],
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
+            StreamBuilder(
+              stream: FirebaseFirestore.instance.collection("users").snapshots(),
+              builder: (context, snapshot) {
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: width < 380
-                            ? 5
-                            : width < 425
-                            ? 15 // You can specify the width for widths less than 425
-                            : width < 768
-                            ? 20 // You can specify the width for widths less than 768
-                            : width < 1024
-                            ? 20 // You can specify the width for widths less than 1024
-                            : width <= 1440
-                            ? 90
-                            : width > 1440 && width <= 2550
-                            ? 90
-                            : 80),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // const SizedBox(width: 30),
-                            Container(
-                              width: width < 425
-                                  ? 40 // You can specify the width for widths less than 425
-                                  : width < 768
-                                  ? 40 // You can specify the width for widths less than 768
-                                  : width < 1024
-                                  ? 50 // You can specify the width for widths less than 1024
-                                  : width <= 1440
-                                  ? 50
-                                  : width > 1440 &&
-                                  width <= 2550
-                                  ? 50
-                                  : 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: user['profileImageUrl'] != null
-                                    ? Colors.transparent
-                                    : Colors.red,
-                              ),
-                              child: user['profileImageUrl'] != null
-                                  ? CircleAvatar(
-                                backgroundImage: NetworkImage(
-                                    user['profileImageUrl']),
-                              )
-                                  : const Icon(Icons.person,
-                                  color: Colors.white),
-                            ),
-                            Expanded(
-                              child: SizedBox(
-                                width: width < 425
-                                    ? 20 // You can specify the width for widths less than 425
-                                    : width < 768
-                                    ? 20 // You can specify the width for widths less than 768
-                                    : width < 1024
-                                    ? 50 // You can specify the width for widths less than 1024
-                                    : width <= 1440
-                                    ? 50
-                                    : width > 1440 &&
-                                    width <= 2550
-                                    ? 50
-                                    : 80,
-                                child: AsulCustomText(
-                                  fontsize: width < 425
-                                      ? 14 // You can specify the width for widths less than 425
-                                      : width < 768
-                                      ? 16 // You can specify the width for widths less than 768
-                                      : width < 1024
-                                      ? 15 // You can specify the width for widths less than 1024
-                                      : width <= 1440
-                                      ? 18
-                                      : width > 1440 && width <= 2550
-                                      ? 18
-                                      : 30,
-
-                                  overflow: TextOverflow.ellipsis,
-                                  text: user['name']?.isNotEmpty == true
-                                      ? user['name']
-                                      : user['name'] ?? '',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                                child: SizedBox(
-                                  width: width < 425
-                                      ? 20 // You can specify the width for widths less than 425
-                                      : width < 768
-                                      ? 20 // You can specify the width for widths less than 768
-                                      : width < 1024
-                                      ? 50 // You can specify the width for widths less than 1024
-                                      : width <= 1440
-                                      ? 80
-                                      : width > 1440 &&
-                                      width <= 2550
-                                      ? 80
-                                      : 80,
-                                  child: AsulCustomText(
-                                    fontsize: width < 425
-                                        ? 14 // You can specify the width for widths less than 425
-                                        : width < 768
-                                        ? 16 // You can specify the width for widths less than 768
-                                        : width < 1024
-                                        ? 15 // You can specify the width for widths less than 1024
-                                        : width <= 1440
-                                        ? 18
-                                        : width > 1440 && width <= 2550
-                                        ? 18
-                                        : 30,
-                                    overflow: TextOverflow.ellipsis,
-                                    text: user['email'] ?? '',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                )),
-                            Expanded(
-                                child: AsulCustomText(
-                                    fontsize: width < 425
-                                        ? 14 // You can specify the width for widths less than 425
-                                        : width < 768
-                                        ? 16 // You can specify the width for widths less than 768
-                                        : width < 1024
-                                        ? 15 // You can specify the width for widths less than 1024
-                                        : width <= 1440
-                                        ? 18
-                                        : width > 1440 && width <= 2550
-                                        ? 18
-                                        : 30,
-
-                                    text: user['role'] ?? '',
-                                    textAlign: TextAlign.center)),
-                            width < 500
-                                ? Column(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    // Handle edit action (replace with actual functionality)
-                                  },
-                                  iconSize: 25,
-                                  icon: const Icon(Icons.edit),
-                                  color: AppColors.backgroundColor,
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    // Handle delete action (replace with actual functionality)
-                                  },
-                                  icon: const Icon(Icons.delete),
-                                  color: Colors.red,
-                                  iconSize: 25,
-                                ),
-                              ],
-                            )
-                                : Row(
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    // Handle edit action (replace with actual functionality)
-                                  },
-                                  icon: const Icon(Icons.edit),
-                                  iconSize: 25,
-                                  color: AppColors.backgroundColor,
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    // Handle delete action (replace with actual functionality)
-                                  },
-                                  icon: const Icon(Icons.delete),
-                                  color: Colors.red,
-                                  iconSize: 25,
-                                ),
-                              ],
-                            ),
-
-                            // const SizedBox(width: 80),
-                          ],
-                        ),
-                        const Divider(),
-                      ],
+                    padding:  EdgeInsets.only(top: Get.height * .2),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.whiteColor),
                     ),
                   );
-                },
-              ),
+                } else if (snapshot.hasError) {
+                  debugPrint("Error in user details home page: ${snapshot.error}");
+                  return Center(
+                    child: Text(
+                      "An Error occurred",
+                      style: jost500(16, AppColors.whiteColor),
+                    ),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Text(
+                      "There are no users at the moment",
+                      style: jost500(16, AppColors.whiteColor),
+                    ),
+                  );
+                } else if (snapshot.connectionState == ConnectionState.none) {
+                  return Center(
+                    child: Text(
+                      "No Internet!",
+                      style: jost500(16, AppColors.whiteColor),
+                    ),
+                  );
+                } else {
+                  var users = snapshot.data!.docs;
+
+                  return Expanded(
+                    child: ListView.builder(
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        final user = users[index];
+                        return Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: width < 380
+                                  ? 5
+                                  : width < 425
+                                  ? 15 // You can specify the width for widths less than 425
+                                  : width < 768
+                                  ? 20 // You can specify the width for widths less than 768
+                                  : width < 1024
+                                  ? 20 // You can specify the width for widths less than 1024
+                                  : width <= 1440
+                                  ? 90
+                                  : width > 1440 && width <= 2550
+                                  ? 90
+                                  : 80),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  // const SizedBox(width: 30),
+                                  Container(
+                                    width: width < 425
+                                        ? 40 // You can specify the width for widths less than 425
+                                        : width < 768
+                                        ? 40 // You can specify the width for widths less than 768
+                                        : width < 1024
+                                        ? 50 // You can specify the width for widths less than 1024
+                                        : width <= 1440
+                                        ? 50
+                                        : width > 1440 &&
+                                        width <= 2550
+                                        ? 50
+                                        : 80,
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: user['profile_pic'] != null
+                                          ? Colors.transparent
+                                          : Colors.red,
+                                    ),
+                                    child: user['profile_pic'] != null
+                                        ? CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                          user['profile_pic']),
+                                    )
+                                        : const Icon(Icons.person,
+                                        color: Colors.white),
+                                  ),
+                                  Expanded(
+                                    child: SizedBox(
+                                      width: width < 425
+                                          ? 20 // You can specify the width for widths less than 425
+                                          : width < 768
+                                          ? 20 // You can specify the width for widths less than 768
+                                          : width < 1024
+                                          ? 50 // You can specify the width for widths less than 1024
+                                          : width <= 1440
+                                          ? 50
+                                          : width > 1440 &&
+                                          width <= 2550
+                                          ? 50
+                                          : 80,
+                                      child: AsulCustomText(
+                                        fontsize: width < 425
+                                            ? 14 // You can specify the width for widths less than 425
+                                            : width < 768
+                                            ? 16 // You can specify the width for widths less than 768
+                                            : width < 1024
+                                            ? 15 // You can specify the width for widths less than 1024
+                                            : width <= 1440
+                                            ? 18
+                                            : width > 1440 && width <= 2550
+                                            ? 18
+                                            : 30,
+
+                                        overflow: TextOverflow.ellipsis,
+                                        text: user['name']?.isNotEmpty == true
+                                            ? user['name']
+                                            : user['name'] ?? '',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                      child: SizedBox(
+                                        width: width < 425
+                                            ? 20 // You can specify the width for widths less than 425
+                                            : width < 768
+                                            ? 20 // You can specify the width for widths less than 768
+                                            : width < 1024
+                                            ? 50 // You can specify the width for widths less than 1024
+                                            : width <= 1440
+                                            ? 80
+                                            : width > 1440 &&
+                                            width <= 2550
+                                            ? 80
+                                            : 80,
+                                        child: AsulCustomText(
+                                          fontsize: width < 425
+                                              ? 14 // You can specify the width for widths less than 425
+                                              : width < 768
+                                              ? 16 // You can specify the width for widths less than 768
+                                              : width < 1024
+                                              ? 15 // You can specify the width for widths less than 1024
+                                              : width <= 1440
+                                              ? 18
+                                              : width > 1440 && width <= 2550
+                                              ? 18
+                                              : 30,
+                                          overflow: TextOverflow.ellipsis,
+                                          text: user['email'] ?? '',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      )),
+                                  Expanded(
+                                      child: AsulCustomText(
+                                          fontsize: width < 425
+                                              ? 14 // You can specify the width for widths less than 425
+                                              : width < 768
+                                              ? 16 // You can specify the width for widths less than 768
+                                              : width < 1024
+                                              ? 15 // You can specify the width for widths less than 1024
+                                              : width <= 1440
+                                              ? 18
+                                              : width > 1440 && width <= 2550
+                                              ? 18
+                                              : 30,
+
+                                          text: user["profile_type"],
+                                          textAlign: TextAlign.center)),
+                                  width < 500
+                                      ? Column(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          // Handle edit action (replace with actual functionality)
+                                        },
+                                        iconSize: 25,
+                                        icon: const Icon(Icons.edit),
+                                        color: AppColors.backgroundColor,
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          // Handle delete action (replace with actual functionality)
+                                        },
+                                        icon: const Icon(Icons.delete),
+                                        color: Colors.red,
+                                        iconSize: 25,
+                                      ),
+                                    ],
+                                  )
+                                      : Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          // Handle edit action (replace with actual functionality)
+                                        },
+                                        icon: const Icon(Icons.edit),
+                                        iconSize: 25,
+                                        color: AppColors.backgroundColor,
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          // Handle delete action (replace with actual functionality)
+                                        },
+                                        icon: const Icon(Icons.delete),
+                                        color: Colors.red,
+                                        iconSize: 25,
+                                      ),
+                                    ],
+                                  ),
+
+                                  // const SizedBox(width: 80),
+                                ],
+                              ),
+                              const Divider(),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+
+
+              }
             ),
           ],
         ),

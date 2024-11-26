@@ -4,8 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iw_admin_panel/Login_Page.dart';
 
 import 'package:iw_admin_panel/sidebar_controller.dart';
+import 'package:iw_admin_panel/tab_pages/edit_events.dart';
+import 'package:iw_admin_panel/tab_pages/online_support.dart';
 import 'package:iw_admin_panel/tab_pages/read.dart';
 import 'package:iw_admin_panel/tab_pages/user_details.dart';
 
@@ -42,8 +45,8 @@ class _HomeMainState extends State<HomeMain> {
                         : sidebarController.selectedindex.value == 1
                         ? AddEvents()
                         : sidebarController.selectedindex.value == 2
-                        ? Read()
-                        : Read()))
+                        ? EditEvents()
+                        : sidebarController.selectedindex.value == 3 ? OnlineSupport() : LoginPage()))
               ],
             ),
             Obx(()=>sidebarController.showsidebar.value == true? ExampleSidebarX():SizedBox.shrink(),)
