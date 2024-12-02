@@ -25,8 +25,26 @@ class OnlineSupportWidget extends StatefulWidget {
 }
 
 class _OnlineSupportWidgetState extends State<OnlineSupportWidget> {
+
+
+
   @override
   Widget build(BuildContext context) {
+
+    final width = MediaQuery.of(context).size.width;
+
+    double fontSize = width <= 425 && width > 375
+        ? 14
+        : width <= 768 && width > 425
+        ? 13
+        : width <= 1024 && width >768
+        ? 11
+        : width <= 1440 && width > 1024
+        ? 14
+        : width > 1440 && width <= 2570
+        ? 15
+        : 12;
+
     return Container(
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -59,7 +77,7 @@ class _OnlineSupportWidgetState extends State<OnlineSupportWidget> {
                 children: [
                   Row(
                     children: [
-                      Text(widget.name, style: jost500(15, Colors.white),),
+                      Text(widget.name, style: jost500(fontSize, Colors.white),),
                       if(widget.is_verified == true)
                         SizedBox(width: 4,),
                       if(widget.is_verified == true)
@@ -67,7 +85,7 @@ class _OnlineSupportWidgetState extends State<OnlineSupportWidget> {
                     ],
                   ),
                   SizedBox(height: 5,),
-                  Text(widget.email, style: jost500(15, Colors.white),),
+                  Text(widget.email, style: jost500(fontSize, Colors.white),),
                 ],
               ))
             ],

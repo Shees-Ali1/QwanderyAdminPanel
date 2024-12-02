@@ -7,6 +7,7 @@ import 'package:iw_admin_panel/colors.dart';
 import 'package:iw_admin_panel/const/images.dart';
 import 'package:iw_admin_panel/const/textstyle.dart';
 import 'package:iw_admin_panel/controllers/event_controller.dart';
+import 'package:iw_admin_panel/sidebar_controller.dart';
 
 class EventCard extends StatefulWidget {
   final String imageAsset; // Change this to imageAsset
@@ -34,18 +35,28 @@ class EventCard extends StatefulWidget {
 
 class _EventCardState extends State<EventCard> {
   final EventController eventVM = Get.put(EventController());
+  final SidebarController sidebarController = Get.put(SidebarController());
 
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+
+    double fontSize = width <= 425 && width > 375
+        ? 10
+        : width <= 768 && width > 425
+        ? 12
+        : width < 375 ? 9 : 10;
+
     return Container(
-      height: 200, // Increased height for better spacing
+      height: 220,
       decoration: BoxDecoration(
         color: AppColors.blueColor,
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black26,
+            color: AppColors.secondaryColor,
             blurRadius: 6.0,
             offset: Offset(0, 4),
           ),
@@ -60,7 +71,7 @@ class _EventCardState extends State<EventCard> {
               borderRadius: BorderRadius.circular(8.0), // Slightly larger radius
               child: Container(
                 height: double.infinity, // Use responsive height
-                width: 150, // Adjusted width for image
+                width: width < 330 ? 130 : 150, // Adjusted width for image
                 decoration: BoxDecoration(
                     color: AppColors.lighterBlueColor
                 ),
@@ -81,7 +92,7 @@ class _EventCardState extends State<EventCard> {
                   // Title and Bookmark Icon
                   Text(
                     widget.title,
-                    style: jost700(14, AppColors.backgroundColor), // Slightly larger font
+                    style: jost700(fontSize, AppColors.backgroundColor), // Slightly larger font
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -94,7 +105,7 @@ class _EventCardState extends State<EventCard> {
                       SizedBox(width: 6),
                       Text(
                         widget.date,
-                        style: jost600(13, AppColors.backgroundColor),
+                        style: jost600(fontSize, AppColors.backgroundColor),
                       ),
                     ],
                   ),
@@ -105,7 +116,7 @@ class _EventCardState extends State<EventCard> {
                       SizedBox(width: 6),
                       Text(
                         widget.location,
-                        style: jost600(13, AppColors.backgroundColor),
+                        style: jost600(fontSize, AppColors.backgroundColor),
                       ),
                     ],
                   ),
@@ -120,7 +131,7 @@ class _EventCardState extends State<EventCard> {
                       SizedBox(width: 6),
                       Text(
                         widget.credits,
-                        style: jost600(13, AppColors.backgroundColor),
+                        style: jost600(fontSize, AppColors.backgroundColor),
                       ),
                     ],
                   ),
@@ -131,7 +142,7 @@ class _EventCardState extends State<EventCard> {
                       SizedBox(width: 6),
                       Text(
                         widget.priceRange,
-                        style: jost600(13, AppColors.backgroundColor),
+                        style: jost600(fontSize, AppColors.backgroundColor),
                       ),
                     ],
                   ),
@@ -153,6 +164,7 @@ class _EventCardState extends State<EventCard> {
                         eventVM.eventCreditsController.text = widget.event!["event_credits"];
                         eventVM.eventOrganizerController..text = widget.event!["event_organizer"];
                         eventVM.event_id.value = widget.event!["event_id"];
+
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.fillcolor,

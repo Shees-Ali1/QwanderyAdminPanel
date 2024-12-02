@@ -20,7 +20,7 @@ class ChatController extends GetxController {
         "seen": false,
         "last_message_sent_at": time,
         "uid": user_id.value,
-        "replier_id": user_id.value,
+        "replier_id": FirebaseAuth.instance.currentUser!.uid,
       }, SetOptions(merge: true));
 
     } catch (e){
@@ -29,6 +29,9 @@ class ChatController extends GetxController {
   }
 
   Stream<QuerySnapshot> getMessages() {
+
+    print("this is value" + user_id.value);
+
     try {
       return FirebaseFirestore.instance
           .collection("online_support")

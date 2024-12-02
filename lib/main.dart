@@ -17,7 +17,6 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  Get.put(EventController());
   runApp(const MyApp());
 }
 
@@ -32,12 +31,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.light().copyWith(
         scaffoldBackgroundColor: backgroundColor,
         canvasColor: secondaryColor,
-
       ),
       getPages: const [],
       unknownRoute: GetPage(
         name: '/home',
-        page: () => const HomeMain(),
+        page: () => const LoginPage(),
         // page: () => FirebaseAuth.instance.currentUser == null
         //     ? const LoginPage()
         //     : const HomeMain(),

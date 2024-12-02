@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:iw_admin_panel/const/textstyle.dart';
+import 'package:iw_admin_panel/tab_pages/home_table_headings.dart';
 import '../colors.dart';
 import '../sidebar_controller.dart';
 import '../widgets/custom_text.dart';
@@ -19,400 +20,299 @@ class _UserDetailsState extends State<UserDetails> {
   final SidebarController sidebarController =Get.put(SidebarController());
   // Static user data for demonstration (replace with actual data later)
 
+  double calculatedWith(double width) {
+    if (width <= 430 && width > 300) return width * 0.95;
+    if (width <= 768 && width > 430) return width * 0.95;
+    if (width <= 1024 && width > 768) return width * 0.6;
+    if (width <= 1440 && width > 1024) return width * 0.7;
+    if (width <= 2900 && width > 1440) return width * 0.9;
+    return Get.width * 0.5;
+  }
 
   @override
   Widget build(BuildContext context) {
+
     final width = MediaQuery.of(context).size.width;
+
     final height = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      backgroundColor: AppColors.blueColor,
-      body: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: width < 380 ? 5 : width < 425
-              ? 15 // You can specify the width for widths less than 425
-              : width < 768
-              ? 20 // You can specify the width for widths less than 768
-              : width < 1024
-              ? 70 // You can specify the width for widths less than 1024
-              : width <= 1440
-              ? 60
-              : width > 1440 && width <= 2550
-              ? 60
-              : 80,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 15),
-            Get.width<768?  GestureDetector(
-              onTap: () {
-                sidebarController.showsidebar.value =true;
-              },
-              child:SvgPicture.asset('assets/drawernavigation.svg',color: AppColors.backgroundColor,),
+    final ScrollController _scrollController = ScrollController();
 
-            )
-                :SizedBox.shrink(),
-            SizedBox(
-              height: width < 425
-                  ? 20 // You can specify the width for widths less than 425
-                  : width < 768
-                  ? 20 // You can specify the width for widths less than 768
-                  : width < 1024
-                  ? 80 // You can specify the width for widths less than 1024
-                  : width <= 1440
-                  ? 80
-                  : width > 1440 && width <= 2550
-                  ? 80
-                  : 80,
-            ),
-            Center(
-              child: SizedBox(
-                width: width < 425
-                    ? 250 // You can specify the width for widths less than 425
-                    : width < 768
-                    ? 350 // You can specify the width for widths less than 768
-                    : width < 1024
-                    ? 400 // You can specify the width for widths less than 1024
-                    : width <= 1440
-                    ? 500
-                    : width > 1440 && width <= 2550
-                    ? 500
-                    : 800,
-                child: TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery =
-                          value.toLowerCase(); // Ensure case-insensitive search
-                    });
-                  },
-                  decoration: InputDecoration(
+    final isWideScreen = width > 800;
 
-                    hintText: 'Search',
-                    hintStyle: TextStyle(
-                      color: AppColors.blueColor,
-                      fontSize: 16.0,
-                    ),
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: const OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: secondaryColor,
-                      size: 26,
-                    ),
+    double innerFontSize = width <= 425
+        ? 10
+        : width <= 768 && width > 425
+        ? 12
+        : width <= 1024 && width >768
+        ? 13
+        : width <= 1440 && width > 1024
+        ? 16
+        : width > 1440 && width <= 2570
+        ? 26
+        : 5;
+
+    return Container(
+      height: Get.height,
+      width: calculatedWith(width),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [AppColors.blueColor, AppColors.greenbutton])
+      ),
+      padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+      ),
+      alignment: Alignment.center,
+      child: Padding(
+        padding:  EdgeInsets.only(top: Get.height * .23),
+        child: StreamBuilder(
+            stream: FirebaseFirestore.instance.collection("users").snapshots(),
+            builder: (context, snapshot) {
+
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator(color: Colors.white,));
+              } else if (snapshot.hasError) {
+                debugPrint("Error:  ${snapshot.error}");
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(child: Text('No users found'));
+              }
+
+              final users = snapshot.data!.docs;
+
+
+
+              return Scrollbar(
+                controller: _scrollController,
+                interactive: true, // Enables mouse drag on web
+                trackVisibility: true,
+                thumbVisibility: true, // Ensures thumb is visible
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  // physics: NeverScrollableScrollPhysics(),
+                  scrollDirection: Axis.horizontal,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DataTable(
+                        horizontalMargin: 0,
+                        columnSpacing: 10.0, // Adjust spacing for columns
+                        dataTextStyle: TextStyle(
+                          fontSize: 12, // Adjust font size for data
+                          color: AppColors.whiteColor,
+                        ),
+                        columns: [
+                          DataColumn(headingRowAlignment: MainAxisAlignment.start
+                              ,label: ProfilePic(width: width)),
+                          DataColumn(
+                              headingRowAlignment: MainAxisAlignment.start,
+                              label: NameContainer(width: width)),
+                          DataColumn(
+                              label: EmailContainer(width: width)),
+                          DataColumn(
+                              label: ChatBlock(width: width)),
+                          DataColumn(
+                              label: BlockContainer(width: width)),
+                        ],
+                        rows: [],
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: DataTable(
+                            horizontalMargin: 0,
+
+                            columnSpacing: 10.0, // Adjust spacing for columns
+                            headingTextStyle: jost700(
+                                width > 1440 && width <= 2570
+                                    ? 7
+                                    : width < 430
+                                    ? 13
+                                    : width <= 1024
+                                    ? 11
+                                    : width <= 770
+                                    ? 13
+                                    : 9,
+                                Colors.white),
+                            dataTextStyle: TextStyle(
+                              fontSize: 12, // Adjust font size for data
+                              color: Colors.white,
+                            ),
+                            headingRowHeight: 0, // Hide column headers in rows
+                            columns: [
+                              DataColumn(
+                                  label: SizedBox
+                                      .shrink()), // Keep it blank since header is already fixed
+                              DataColumn(label: SizedBox.shrink()),
+                              DataColumn(label: SizedBox.shrink()),
+                              DataColumn(label: SizedBox.shrink()),
+                              DataColumn(label: SizedBox.shrink()),
+                            ],
+                            rows: users.map((user) {
+                              return DataRow(
+                                cells: [
+                                  DataCell(Container(
+                                    width: width <= 425
+                                        ? 70
+                                        : width <= 768 && width > 425
+                                        ? 100
+                                        : width <=1024 && width > 768
+                                        ? 100
+                                        : width <= 1440 && width > 1024
+                                        ? 120
+                                        : width > 1440 && width <= 2570
+                                        ? 180 : 80,
+                                    child: Center(
+                                      child: CircleAvatar(
+                                        radius: 20,
+                                        backgroundImage: NetworkImage(user["profile_pic"]),
+                                        backgroundColor: AppColors.secondaryColor,
+                                      ),
+                                    ),
+                                  )),
+                                  DataCell(Container(
+
+                                    width: width <= 425
+                                        ? 100
+                                        : width <= 768 && width > 425
+                                        ? 110
+                                        : width <=1024 && width > 768
+                                        ? 130
+                                        : width <= 1440 && width > 1024
+                                        ? 180
+                                        : width > 1440 && width <= 2570
+                                        ? 240 : 350,
+                                    child: Text(
+                                      user["name"],
+                                      style: jost700(innerFontSize, Colors.white),
+                                    ),
+                                  ),),
+                                  DataCell(Container(
+                                    width: width <= 425
+                                        ? 190
+                                        : width <= 768 && width > 425
+                                        ? 220
+                                        : width <=1024 && width > 768
+                                        ? 240
+                                        : width <= 1440 && width > 1024
+                                        ? 300
+                                        : width > 1440 && width <= 2570
+                                        ? 440
+                                        : 350,
+                                    child: Text(user["email"],
+                                      style: jost700(innerFontSize, Colors.white),),
+                                  )),
+                                  DataCell(Container(
+                                    alignment: Alignment.center,
+                                    width: width <= 425
+                                        ? 110
+                                        : width <=768 && width > 425
+                                        ? 100
+                                        : width <=1024 && width > 768
+                                        ? 110
+                                        : width <= 1440
+                                        ? 154
+                                        : width > 1440 && width <= 2570
+                                        ? 240 : 150,
+                                    child: Transform.scale(
+                                      scale: width <= 425
+                                          ? 0.7
+                                          : width <= 768
+                                          ? 0.7
+                                          : width <= 1024
+                                          ? 0.7
+                                          : width <= 1440
+                                          ? 0.8
+                                          : width > 1440 && width <= 2570
+                                          ? 1
+                                          : 1,
+                                      // isWideScreen?1:0.5, // Adjust the scale factor to increase/decrease size
+                                      child: Switch(
+                                        focusColor: AppColors.blueColor,
+                                        value: user["chat_blocked"],
+                                        onChanged: (value) {
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(user["uid"])
+                                              .update({'chat_blocked': value}).then(
+                                                  (_) {
+
+                                                // if(value == true){
+                                                //   notificationVM.notifyUser(context: context, title: "Chat Blocked", message: "The Admin has blocked you from chatting with any personnel", userId: user.uid, type: "Admin notification");
+                                                // } else {
+                                                //   notificationVM.notifyUser(context: context, title: "Chat Restrictions Removed", message: "The Admin has removed restrictions on your Chats", userId: user.uid, type: "Admin notification");
+                                                // }
+
+
+                                                debugPrint('User ${user["uid"]} chat block status updated to $value');
+                                              }).catchError((error) {
+                                            debugPrint(
+                                                'Failed to update user: $error');
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  )),
+                                  DataCell(Container(
+                                    alignment: Alignment.center,
+                                    width: width <= 425
+                                        ? 70
+                                        : width <=768 && width > 425
+                                        ? 80
+                                        : width <=1024 && width > 768
+                                        ? 80
+                                        : width <= 1440 && width > 1024
+                                        ? 154
+                                        : width > 1440 && width <= 2570
+                                        ? 210 : 150,
+                                    child: Transform.scale(
+                                      // alignment: Alignment.center,
+                                      scale: width <= 425
+                                          ? 0.7
+                                          : width <= 768
+                                          ? 0.7
+                                          : width <= 1024
+                                          ? 0.7
+                                          : width <= 1440
+                                          ? 0.8
+                                          : width > 1440 && width <= 2570
+                                          ? 1
+                                          : 1,
+                                      // isWideScreen?1:0.5, // Adjust the scale factor to increase/decrease size
+                                      child: Switch(
+                                        focusColor: AppColors.blueColor,
+                                        value: user["is_blocked"],
+                                        onChanged: (value) {
+                                          FirebaseFirestore.instance
+                                              .collection('users')
+                                              .doc(user["uid"])
+                                              .update({'is_blocked': value}).then(
+                                                  (_) {
+
+
+                                                debugPrint('User ${user["uid"]} block status updated to $value');
+                                              }).catchError((error) {
+                                            debugPrint(
+                                                'Failed to update user: $error');
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  )),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      )
+                    ],
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: width < 425
-                      ? 20 // You can specify the width for widths less than 425
-                      : width < 768
-                      ? 20 // You can specify the width for widths less than 768
-                      : width < 1024
-                      ? 40 // You can specify the width for widths less than 1024
-                      : width <= 1440
-                      ? 100
-                      : width > 1440 && width <= 2550
-                      ? 100
-                      : 80,
-                  vertical: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(
-                    width: width < 425
-                        ? 40
-                        : width < 500
-                        ? 40 // You can specify the width for widths less than 425
-                        : width < 768
-                        ? 40 // You can specify the width for widths less than 768
-                        : width < 1024
-                        ? 40 // You can specify the width for widths less than 1024
-                        : width <= 1440
-                        ? 50
-                        : width > 1440 && width <= 2550
-                        ? 50
-                        : 80,
-                  ),
-                  Expanded(
-                    child: AsulCustomText(
-                      text: 'Name',
-                      fontsize: 18,
-                      fontWeight: FontWeight.w600,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: AsulCustomText(
-                      // overflow: TextOverflow.ellipsis,
-                      text: 'Email',
-                      fontsize: 18,
-                      fontWeight: FontWeight.w600,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: AsulCustomText(
-                      text: 'Profile',
-                      fontsize: 18,
-                      fontWeight: FontWeight.w600,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(
-                    width: width < 425
-                        ? 40
-                        : width < 500
-                        ? 40 // You can specify the width for widths less than 425
-                        : width < 768
-                        ? 90 // You can specify the width for widths less than 768
-                        : width < 1024
-                        ? 90 // You can specify the width for widths less than 1024
-                        : width <= 1440
-                        ? 80
-                        : width > 1440 && width <= 2550
-                        ? 80
-                        : 80,
-                  ),
-                ],
-              ),
-            ),
-            StreamBuilder(
-              stream: FirebaseFirestore.instance.collection("users").snapshots(),
-              builder: (context, snapshot) {
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Padding(
-                    padding:  EdgeInsets.only(top: Get.height * .2),
-                    child: Center(
-                      child: CircularProgressIndicator(color: AppColors.whiteColor),
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  debugPrint("Error in user details home page: ${snapshot.error}");
-                  return Center(
-                    child: Text(
-                      "An Error occurred",
-                      style: jost500(16, AppColors.whiteColor),
-                    ),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
-                    child: Text(
-                      "There are no users at the moment",
-                      style: jost500(16, AppColors.whiteColor),
-                    ),
-                  );
-                } else if (snapshot.connectionState == ConnectionState.none) {
-                  return Center(
-                    child: Text(
-                      "No Internet!",
-                      style: jost500(16, AppColors.whiteColor),
-                    ),
-                  );
-                } else {
-                  var users = snapshot.data!.docs;
-
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: users.length,
-                      itemBuilder: (context, index) {
-                        final user = users[index];
-                        return Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: width < 380
-                                  ? 5
-                                  : width < 425
-                                  ? 15 // You can specify the width for widths less than 425
-                                  : width < 768
-                                  ? 20 // You can specify the width for widths less than 768
-                                  : width < 1024
-                                  ? 20 // You can specify the width for widths less than 1024
-                                  : width <= 1440
-                                  ? 90
-                                  : width > 1440 && width <= 2550
-                                  ? 90
-                                  : 80),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  // const SizedBox(width: 30),
-                                  Container(
-                                    width: width < 425
-                                        ? 40 // You can specify the width for widths less than 425
-                                        : width < 768
-                                        ? 40 // You can specify the width for widths less than 768
-                                        : width < 1024
-                                        ? 50 // You can specify the width for widths less than 1024
-                                        : width <= 1440
-                                        ? 50
-                                        : width > 1440 &&
-                                        width <= 2550
-                                        ? 50
-                                        : 80,
-                                    height: 80,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: user['profile_pic'] != null
-                                          ? Colors.transparent
-                                          : Colors.red,
-                                    ),
-                                    child: user['profile_pic'] != null
-                                        ? CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                          user['profile_pic']),
-                                    )
-                                        : const Icon(Icons.person,
-                                        color: Colors.white),
-                                  ),
-                                  Expanded(
-                                    child: SizedBox(
-                                      width: width < 425
-                                          ? 20 // You can specify the width for widths less than 425
-                                          : width < 768
-                                          ? 20 // You can specify the width for widths less than 768
-                                          : width < 1024
-                                          ? 50 // You can specify the width for widths less than 1024
-                                          : width <= 1440
-                                          ? 50
-                                          : width > 1440 &&
-                                          width <= 2550
-                                          ? 50
-                                          : 80,
-                                      child: AsulCustomText(
-                                        fontsize: width < 425
-                                            ? 14 // You can specify the width for widths less than 425
-                                            : width < 768
-                                            ? 16 // You can specify the width for widths less than 768
-                                            : width < 1024
-                                            ? 15 // You can specify the width for widths less than 1024
-                                            : width <= 1440
-                                            ? 18
-                                            : width > 1440 && width <= 2550
-                                            ? 18
-                                            : 30,
-
-                                        overflow: TextOverflow.ellipsis,
-                                        text: user['name']?.isNotEmpty == true
-                                            ? user['name']
-                                            : user['name'] ?? '',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                      child: SizedBox(
-                                        width: width < 425
-                                            ? 20 // You can specify the width for widths less than 425
-                                            : width < 768
-                                            ? 20 // You can specify the width for widths less than 768
-                                            : width < 1024
-                                            ? 50 // You can specify the width for widths less than 1024
-                                            : width <= 1440
-                                            ? 80
-                                            : width > 1440 &&
-                                            width <= 2550
-                                            ? 80
-                                            : 80,
-                                        child: AsulCustomText(
-                                          fontsize: width < 425
-                                              ? 14 // You can specify the width for widths less than 425
-                                              : width < 768
-                                              ? 16 // You can specify the width for widths less than 768
-                                              : width < 1024
-                                              ? 15 // You can specify the width for widths less than 1024
-                                              : width <= 1440
-                                              ? 18
-                                              : width > 1440 && width <= 2550
-                                              ? 18
-                                              : 30,
-                                          overflow: TextOverflow.ellipsis,
-                                          text: user['email'] ?? '',
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      )),
-                                  Expanded(
-                                      child: AsulCustomText(
-                                          fontsize: width < 425
-                                              ? 14 // You can specify the width for widths less than 425
-                                              : width < 768
-                                              ? 16 // You can specify the width for widths less than 768
-                                              : width < 1024
-                                              ? 15 // You can specify the width for widths less than 1024
-                                              : width <= 1440
-                                              ? 18
-                                              : width > 1440 && width <= 2550
-                                              ? 18
-                                              : 30,
-
-                                          text: user["profile_type"],
-                                          textAlign: TextAlign.center)),
-                                  width < 500
-                                      ? Column(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          // Handle edit action (replace with actual functionality)
-                                        },
-                                        iconSize: 25,
-                                        icon: const Icon(Icons.edit),
-                                        color: AppColors.backgroundColor,
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          // Handle delete action (replace with actual functionality)
-                                        },
-                                        icon: const Icon(Icons.delete),
-                                        color: Colors.red,
-                                        iconSize: 25,
-                                      ),
-                                    ],
-                                  )
-                                      : Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          // Handle edit action (replace with actual functionality)
-                                        },
-                                        icon: const Icon(Icons.edit),
-                                        iconSize: 25,
-                                        color: AppColors.backgroundColor,
-                                      ),
-                                      IconButton(
-                                        onPressed: () {
-                                          // Handle delete action (replace with actual functionality)
-                                        },
-                                        icon: const Icon(Icons.delete),
-                                        color: Colors.red,
-                                        iconSize: 25,
-                                      ),
-                                    ],
-                                  ),
-
-                                  // const SizedBox(width: 80),
-                                ],
-                              ),
-                              const Divider(),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }
-
-
-              }
-            ),
-          ],
+              );
+            }
         ),
       ),
     );

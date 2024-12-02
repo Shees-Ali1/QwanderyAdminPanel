@@ -13,6 +13,7 @@ class CustomButton extends StatelessWidget {
   final double? height;
   final double borderRadius;
   final double fontSize;
+  final double? margin_bottom;
   final FontWeight fontWeight;
   final BoxBorder? border;
 
@@ -26,7 +27,7 @@ class CustomButton extends StatelessWidget {
     this.borderRadius = 12,
     this.fontSize = 14,
     this.fontWeight = FontWeight.w500,
-    this.border,
+    this.border, this.margin_bottom,
   });
 
   @override
@@ -35,7 +36,7 @@ class CustomButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-          margin: EdgeInsets.only(bottom: 21),
+          margin: EdgeInsets.only(bottom: margin_bottom ?? 21),
           width: width != null ? width! : null,
           height: height != null ? height! : null,
           decoration: BoxDecoration(
