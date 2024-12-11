@@ -1,6 +1,6 @@
 {
-    "name": "iw_admin_panel",
-    "short_name": "iw_admin_panel",
+    "name": "Qwandery Admin",
+    "short_name": "Qwandery Admin",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

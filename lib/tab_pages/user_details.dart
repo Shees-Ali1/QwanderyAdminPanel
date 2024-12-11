@@ -121,7 +121,8 @@ class _UserDetailsState extends State<UserDetails> {
                         child: SingleChildScrollView(
                           child: DataTable(
                             horizontalMargin: 0,
-
+                            dataRowMaxHeight: 70,
+                            dataRowMinHeight: 69,
                             columnSpacing: 10.0, // Adjust spacing for columns
                             headingTextStyle: jost700(
                                 width > 1440 && width <= 2570
@@ -228,6 +229,10 @@ class _UserDetailsState extends State<UserDetails> {
                                           : 1,
                                       // isWideScreen?1:0.5, // Adjust the scale factor to increase/decrease size
                                       child: Switch(
+                                        activeTrackColor: AppColors.blueColor,
+                                        inactiveTrackColor: AppColors.secondaryColor,
+                                        inactiveThumbColor: AppColors.blueColor,
+                                        activeColor: AppColors.secondaryColor,
                                         focusColor: AppColors.blueColor,
                                         value: user["chat_blocked"],
                                         onChanged: (value) {
@@ -280,6 +285,10 @@ class _UserDetailsState extends State<UserDetails> {
                                           : 1,
                                       // isWideScreen?1:0.5, // Adjust the scale factor to increase/decrease size
                                       child: Switch(
+                                        activeTrackColor: AppColors.blueColor,
+                                        inactiveTrackColor: AppColors.secondaryColor,
+                                        inactiveThumbColor: AppColors.blueColor,
+                                        activeColor: AppColors.secondaryColor,
                                         focusColor: AppColors.blueColor,
                                         value: user["is_blocked"],
                                         onChanged: (value) {

@@ -40,7 +40,7 @@ class AppImages {
   static const privacy_policy_icon = 'assets/images/privacy_policy_icon.png';
   static const term_condition_icon = 'assets/images/term_condition_icon.png';
   static const logout_icon = 'assets/images/logout_icon.png';
-  static const Drawer_logo = 'assets/images/Drawer_logo.png';
+  static const Drawer_logo = 'assets/images/logo.png';
   static const us_flag = 'assets/images/us_flag.jpg';
   static const france = 'assets/images/france.jpg';
   static const spain = 'assets/images/spain.jpg';
