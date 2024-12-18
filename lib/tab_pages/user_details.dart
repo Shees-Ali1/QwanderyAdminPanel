@@ -71,7 +71,7 @@ class _UserDetailsState extends State<UserDetails> {
 
 
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator(color: Colors.white,));
+                return CircularProgressIndicator(color: Colors.white,);
               } else if (snapshot.hasError) {
                 debugPrint("Error:  ${snapshot.error}");
                 return Center(child: Text('Error: ${snapshot.error}'));
@@ -83,7 +83,11 @@ class _UserDetailsState extends State<UserDetails> {
 
 
 
-              return Scrollbar(
+              return RawScrollbar(
+                thumbColor: Colors.white,
+                thickness: 5,
+                padding: EdgeInsets.only(bottom: 10),
+                radius: Radius.circular(7),
                 controller: _scrollController,
                 interactive: true, // Enables mouse drag on web
                 trackVisibility: true,
@@ -114,6 +118,8 @@ class _UserDetailsState extends State<UserDetails> {
                               label: ChatBlock(width: width)),
                           DataColumn(
                               label: BlockContainer(width: width)),
+                          DataColumn(
+                              label: DeleteContainer(width: width)),
                         ],
                         rows: [],
                       ),
@@ -144,6 +150,7 @@ class _UserDetailsState extends State<UserDetails> {
                               DataColumn(
                                   label: SizedBox
                                       .shrink()), // Keep it blank since header is already fixed
+                              DataColumn(label: SizedBox.shrink()),
                               DataColumn(label: SizedBox.shrink()),
                               DataColumn(label: SizedBox.shrink()),
                               DataColumn(label: SizedBox.shrink()),
@@ -306,6 +313,56 @@ class _UserDetailsState extends State<UserDetails> {
                                           });
                                         },
                                       ),
+                                    ),
+                                  )),
+                                  DataCell(Container(
+                                    alignment: Alignment.center,
+                                    width: width <= 425
+                                        ? 70
+                                        : width <=768 && width > 425
+                                        ? 80
+                                        : width <=1024 && width > 768
+                                        ? 80
+                                        : width <= 1440 && width > 1024
+                                        ? 154
+                                        : width > 1440 && width <= 2570
+                                        ? 210 : 150,
+                                    child: Transform.scale(
+                                      // alignment: Alignment.center,
+                                      scale: width <= 425
+                                          ? 0.7
+                                          : width <= 768
+                                          ? 0.7
+                                          : width <= 1024
+                                          ? 0.7
+                                          : width <= 1440
+                                          ? 0.8
+                                          : width > 1440 && width <= 2570
+                                          ? 1
+                                          : 1,
+                                      // isWideScreen?1:0.5, // Adjust the scale factor to increase/decrease size
+                                      child: GestureDetector(
+                                          onTap: (){
+                                            FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(user["uid"])
+                                                .update({'chat_blocked': true}).then(
+                                                    (_) {
+
+                                                  // if(value == true){
+                                                  //   notificationVM.notifyUser(context: context, title: "Chat Blocked", message: "The Admin has blocked you from chatting with any personnel", userId: user.uid, type: "Admin notification");
+                                                  // } else {
+                                                  //   notificationVM.notifyUser(context: context, title: "Chat Restrictions Removed", message: "The Admin has removed restrictions on your Chats", userId: user.uid, type: "Admin notification");
+                                                  // }
+
+
+                                                  debugPrint('User ${user["uid"]} delete status updated to true');
+                                                }).catchError((error) {
+                                              debugPrint(
+                                                  'Failed to update user: $error');
+                                            });
+                                          },
+                                          child: Icon(Icons.delete, size: 30, color: Colors.red,))
                                     ),
                                   )),
                                 ],

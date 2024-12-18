@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iw_admin_panel/Login_Page.dart';
 import 'package:iw_admin_panel/colors.dart';
 import 'package:iw_admin_panel/const/images.dart';
 import 'package:iw_admin_panel/controllers/chat_controller.dart';
@@ -71,6 +73,20 @@ class _MainDashboardState extends State<MainDashboard> {
                 isDrawer: widget.isDrawer,
             ),
             DashboardWidget(
+              title: "Add Users",
+              subTitle: "Add Users",
+              onPressed: (){
+                controller.selectedTab.value = "Add Users";
+                controller.chat.value = false;
+                if(widget.isDrawer == true){
+                  Get.back();
+                }
+              },
+              iconData: Icons.person,
+              isSelected: controller.selectedTab.value == "Add Users" ? true : false,
+              isDrawer: widget.isDrawer,
+            ),
+            DashboardWidget(
                 title: "Add Event",
                 subTitle: "Add Event",
                 onPressed: (){
@@ -115,9 +131,9 @@ class _MainDashboardState extends State<MainDashboard> {
             DashboardWidget(
                 title: "Log out",
                 subTitle: "Log out",
-                onPressed: (){
-                  controller.chat.value = false;
-                  Get.back();
+                onPressed: () async{
+                await  FirebaseAuth.instance.signOut();
+                  Get.offAll(LoginPage());
                 },
                 iconData: Icons.logout,
                 isSelected: controller.selectedTab.value == "Log out" ? true : false,

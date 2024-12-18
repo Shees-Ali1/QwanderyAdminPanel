@@ -10,6 +10,7 @@ import 'package:iw_admin_panel/colors.dart';
 import 'package:iw_admin_panel/controllers/chat_controller.dart';
 
 import 'package:iw_admin_panel/sidebar_controller.dart';
+import 'package:iw_admin_panel/tab_pages/add_users.dart';
 import 'package:iw_admin_panel/tab_pages/edit_events.dart';
 import 'package:iw_admin_panel/tab_pages/online_support.dart';
 import 'package:iw_admin_panel/tab_pages/read.dart';
@@ -31,6 +32,7 @@ class HomeMain extends StatefulWidget {
 
 class _HomeMainState extends State<HomeMain> {
   final SidebarController sidebarController = Get.put(SidebarController());
+  final UserController userVM = Get.put(UserController());
   final ChatController chatVM = Get.put(ChatController());
 
 
@@ -87,8 +89,7 @@ class _HomeMainState extends State<HomeMain> {
               ),
             ],
           ),
-        )
-           ,
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 10.0),
@@ -122,13 +123,15 @@ class _HomeMainState extends State<HomeMain> {
               child: Obx(
                     () => sidebarController.selectedTab.value == "Users"
                     ? UserDetails()
+                    : sidebarController.selectedTab.value == "Add Users"
+                    ? AddUsers()
                     : sidebarController.selectedTab.value == "Add Event"
                     ? AddEvents()
                     : sidebarController.selectedTab.value == "Edit Event"
                     ? EditEvents()
                     : sidebarController.selectedTab.value == "Online Support"
                     ? OnlineSupport()
-                    : LoginPage(),
+                    : LoginPage()
               ),
             ),
           ],

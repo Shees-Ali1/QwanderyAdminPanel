@@ -650,7 +650,7 @@ class _EditEventsState extends State<EditEvents> {
                                     ()=> Expanded(
                                   child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
                                     overflow: TextOverflow.ellipsis,
-                                    style: jost400(headingFont, Colors.black),
+                                    style: jost400(17, Colors.black),
 
                                   ),
                                 ),
@@ -753,6 +753,7 @@ class _EditEventsState extends State<EditEvents> {
       controller: controller,
       maxLines: maxLines,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      style: jost400(17, Colors.black),
       decoration: InputDecoration(
         labelText: null, // Removes the label text
         hintText: null,

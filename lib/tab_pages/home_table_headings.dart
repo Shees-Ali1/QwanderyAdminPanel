@@ -169,6 +169,39 @@ class BlockContainer extends StatelessWidget {
   }
 }
 
+class DeleteContainer extends StatelessWidget {
+  final double width;
+
+  DeleteContainer({required this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    double containerWidth =  width <= 425
+        ? 70
+        : width <=768 && width > 425
+        ? 80
+        : width <=1024 && width > 768
+        ? 80
+        : width <= 1440
+        ? 154
+        : width > 1440 && width <= 2570
+        ? 210 : 150;
+
+    double fontSize = width > 1440 && width <= 2570
+        ? 28 : width > 425 && width <= 768
+        ? 14 : width <= 1024 && width > 768 ? 14 : width <= 1440 && width > 1024 ? 16 : 12;
+
+    return Container(
+      alignment: Alignment.center,
+      width: containerWidth,
+      child: Text(
+        'Delete',
+        style: jost700(fontSize,Colors.white),
+      ),
+    );
+  }
+}
+
 
 
 

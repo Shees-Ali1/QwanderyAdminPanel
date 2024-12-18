@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:csc_picker/csc_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,6 +26,7 @@ class _AddEventsState extends State<AddEvents> {
   final SidebarController sidebarController = Get.put(SidebarController());
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final EventController eventVM = Get.put(EventController());
+  final FirebaseStorage _storage = FirebaseStorage.instance; // Firebase Storage instance
 
   Uint8List? _image;
 
@@ -50,10 +52,8 @@ class _AddEventsState extends State<AddEvents> {
   // Add event to Firestore
   Future<void> addEvent() async {
     if (eventVM.eventNameController.text.isEmpty ||
-        eventVM.eventImageController.text.isEmpty ||
         eventVM.eventDateController.text.isEmpty ||
         eventVM.eventPriceController.text.isEmpty ||
-        eventVM.eventLocationController.text.isEmpty ||
         eventVM.eventAddressController.text.isEmpty ||
         eventVM.eventDescriptionController.text.isEmpty) {
       Get.snackbar(
@@ -68,8 +68,16 @@ class _AddEventsState extends State<AddEvents> {
 
     try {
 
+      String fileName = 'profile_pictures/${eventVM.eventNameController.text}.jpg';
+      UploadTask uploadTask = _storage.ref(fileName).putData(
+        _image!, // Pass the Uint8List directly
+        SettableMetadata(contentType: 'image/jpeg'), // Metadata for image
+      );
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
       final docRef = await _firestore.collection('events').add({
-        'event_image': eventVM.eventImageController.text.trim(),
+        'event_image': downloadUrl,
         'event_name': eventVM.eventNameController.text.trim(),
         'event_date': eventVM.eventDateController.text.trim(),
         'event_price': eventVM.eventPriceController.text.trim(),
@@ -113,6 +121,11 @@ class _AddEventsState extends State<AddEvents> {
       eventVM.city.value = "";
       eventVM.state.value = "";
       eventVM.country.value = "";
+
+      setState(() {
+        _image = null;
+      });
+
     } catch (e) {
       Get.snackbar(
         "Error",
@@ -124,7 +137,6 @@ class _AddEventsState extends State<AddEvents> {
     }
   }
 
-  // Date picker function
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selectedDate = await showDatePicker(
 
@@ -221,12 +233,10 @@ class _AddEventsState extends State<AddEvents> {
     }
   }
 
-
   @override
   void dispose(){
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -427,7 +437,7 @@ class _AddEventsState extends State<AddEvents> {
                                         ()=> Expanded(
                                         child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
                                           overflow: TextOverflow.ellipsis,
-                                          style: jost400(headingFont, Colors.black),
+                                          style: jost400(17, Colors.black),
                                         ),
                                       ),
                                     ),
@@ -484,7 +494,7 @@ class _AddEventsState extends State<AddEvents> {
                                        ()=> Expanded(
                                      child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
                                        overflow: TextOverflow.ellipsis,
-                                       style: jost400(headingFont, Colors.black),
+                                       style: jost400(17, Colors.black),
 
                                      ),
                                    ),
@@ -589,9 +599,11 @@ class _AddEventsState extends State<AddEvents> {
       controller: controller,
       maxLines: maxLines,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      style: jost400(17, Colors.black),
       decoration: InputDecoration(
         labelText: null, // Removes the label text
         hintText: null,
+        hintStyle:  jost400(17, Colors.black),
         isDense: true,// Ensures there's no hint text inside the field
         contentPadding: EdgeInsets.symmetric(vertical: verticalPadding(width), horizontal: horizontalPadding(width)),
         border: OutlineInputBorder(
