@@ -357,6 +357,7 @@ class _UserDetailsState extends State<UserDetails> {
                                                 "favourites": [],
                                                 "requested": [],
                                                 "email": "",
+                                                "location": "",
 
                                                 }).then(
                                                     (_) {
