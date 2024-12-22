@@ -41,6 +41,9 @@ class _EditEventsState extends State<EditEvents> {
 
   // Add event to Firestore
   Future<void> changeEvent(String event_id) async {
+
+    eventVM.loading.value = true;
+
     if (eventVM.eventNameController.text.isEmpty ||
         eventVM.eventImageController.text.isEmpty ||
         eventVM.eventDateController.text.isEmpty ||
@@ -55,16 +58,31 @@ class _EditEventsState extends State<EditEvents> {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+      eventVM.loading.value = false;
       return;
     }
 
     try {
 
+      String downloadUrl = "";
+
+      if(_image != null){
+        String fileName = 'event_pictures/${eventVM.eventNameController.text}.jpg';
+        UploadTask uploadTask = _storage.ref(fileName).putData(
+          _image!, // Pass the Uint8List directly
+          SettableMetadata(contentType: 'image/jpeg'), // Metadata for image
+        );
+        TaskSnapshot snapshot = await uploadTask;
+         downloadUrl = await snapshot.ref.getDownloadURL();
+      }
+
       await _firestore.collection('events').doc(event_id).set({
-        'event_image': eventVM.eventImageController.text.trim(),
+        'event_image': _image != null ? downloadUrl : eventVM.eventImageController.text.trim(),
         'event_name': eventVM.eventNameController.text.trim(),
         'event_date': eventVM.eventDateController.text.trim(),
         'event_price': eventVM.eventPriceController.text.trim(),
+        'event_start_price': eventVM.eventStartPriceController.text.trim(),
+        'event_end_price': eventVM.eventEndPriceController.text.trim(),
         'event_credits': eventVM.eventCreditsController.text.trim(),
         'event_location': eventVM.eventLocationController.text.trim(),
         'event_building': eventVM.eventAddressController.text.trim(),
@@ -83,7 +101,6 @@ class _EditEventsState extends State<EditEvents> {
       Get.snackbar(
         "Success",
         "Event edited successfully!",
-        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
@@ -93,6 +110,8 @@ class _EditEventsState extends State<EditEvents> {
       eventVM.eventNameController.clear();
       eventVM.eventDateController.clear();
       eventVM.eventPriceController.clear();
+      eventVM.eventStartPriceController.clear();
+      eventVM.eventEndPriceController.clear();
       eventVM.eventLocationController.clear();
       eventVM.eventAddressController.clear();
       eventVM.eventDescriptionController.clear();
@@ -102,7 +121,10 @@ class _EditEventsState extends State<EditEvents> {
       eventVM.state.value = "";
       eventVM.country.value = "";
       eventVM.event_id.value = "";
+
+      eventVM.loading.value = false;
     } catch (e) {
+      eventVM.loading.value = false;
       Get.snackbar(
         "Error",
         "Failed to edit event: $e",
@@ -128,14 +150,18 @@ class _EditEventsState extends State<EditEvents> {
         colorText: Colors.white,
         backgroundColor: AppColors.blueColor,
       );
-    } else if (eventVM.eventDateController.text.isEmpty) {
-      Get.snackbar(
-        "Event Date is empty!",
-        "Please choose the event date.",
-        colorText: Colors.white,
-        backgroundColor: AppColors.blueColor,
-      );
-    } else if (eventVM.eventPriceController.text.isEmpty) {
+    }
+
+    // else if (eventVM.eventDateController.text.isEmpty) {
+    //   Get.snackbar(
+    //     "Event Date is empty!",
+    //     "Please choose the event date.",
+    //     colorText: Colors.white,
+    //     backgroundColor: AppColors.blueColor,
+    //   );
+    // }
+
+    else if (eventVM.eventPriceController.text.isEmpty) {
       Get.snackbar(
         "Event Price is empty!",
         "Please fill in the event price.",
@@ -265,6 +291,7 @@ class _EditEventsState extends State<EditEvents> {
                   },
                   onCityChanged: (value) {
                     eventVM.city.value = value ?? "Select City";
+                    eventVM.eventLocationController.text = "${eventVM.city.value}, ${eventVM.country.value}";
                   },
                 ),
               ],
@@ -499,36 +526,56 @@ class _EditEventsState extends State<EditEvents> {
                 _buildInputField("Event Address", context, eventVM.eventAddressController),
                 SizedBox(height: spacing(width)),
                 if(width > 600)
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectDate(context),
-                          child: AbsorbPointer(
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _selectDate(context),
+                              child: AbsorbPointer(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                    const SizedBox(height: 5),
+                                    _buildInputField("Event Date", context, eventVM.eventDateController),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: spacing(width)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                Text('Enter Starting Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
                                 const SizedBox(height: 5),
-                                _buildInputField("Event Date", context, eventVM.eventDateController),
+                                _buildInputField("Event Price", context, eventVM.eventStartPriceController, isNumber: true),
                               ],
                             ),
                           ),
-                        ),
-                      ),
-                      SizedBox(width: spacing(width)),
-                      Expanded(
+                          SizedBox(width: spacing(width),),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
 
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Enter Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                            const SizedBox(height: 5),
-                            _buildInputField("Event Price", context, eventVM.eventPriceController, isNumber: true),
-                          ],
-                        ),
+                              children: [
+                                Text('Enter Ending Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                const SizedBox(height: 5),
+                                _buildInputField("Event Price", context, eventVM.eventEndPriceController, isNumber: true),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -548,14 +595,32 @@ class _EditEventsState extends State<EditEvents> {
                     ),
                   ),
                 if(width < 600)
-                  Column(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(width: spacing(width)),
-                      Text('Enter Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                      const SizedBox(height: 5),
-                      _buildInputField("Event Price", context, eventVM.eventPriceController, isNumber: true),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Enter Starting Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                            const SizedBox(height: 5),
+                            _buildInputField("Event Price", context, eventVM.eventStartPriceController, isNumber: true),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: spacing(width),),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                          children: [
+                            Text('Enter Ending Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                            const SizedBox(height: 5),
+                            _buildInputField("Event Price", context, eventVM.eventEndPriceController, isNumber: true),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 SizedBox(height: spacing(width)),
@@ -593,7 +658,7 @@ class _EditEventsState extends State<EditEvents> {
                                           ()=> Expanded(
                                         child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
                                           overflow: TextOverflow.ellipsis,
-                                          style: jost400(headingFont, Colors.black),
+                                          style: jost400(16, Colors.black),
                                         ),
                                       ),
                                     ),
@@ -701,13 +766,15 @@ class _EditEventsState extends State<EditEvents> {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        'Edit Event',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
+                    child: Obx(
+                        ()=> Center(
+                        child: eventVM.loading.value ? CircularProgressIndicator(color: Colors.white,) : Text(
+                          'Edit Event',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),

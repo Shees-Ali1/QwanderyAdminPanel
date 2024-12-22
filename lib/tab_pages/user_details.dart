@@ -66,7 +66,7 @@ class _UserDetailsState extends State<UserDetails> {
       child: Padding(
         padding:  EdgeInsets.only(top: Get.height * .23),
         child: StreamBuilder(
-            stream: FirebaseFirestore.instance.collection("users").snapshots(),
+            stream: FirebaseFirestore.instance.collection("users").where("is_deleted", isEqualTo: false).snapshots(),
             builder: (context, snapshot) {
 
 
@@ -346,7 +346,19 @@ class _UserDetailsState extends State<UserDetails> {
                                             FirebaseFirestore.instance
                                                 .collection('users')
                                                 .doc(user["uid"])
-                                                .update({'chat_blocked': true}).then(
+                                                .update({
+                                                'is_deleted': true,
+                                                "profile_pic": "",
+                                                'name': "Deleted User",
+                                                "bio": "",
+                                                "followers": [],
+                                                "following": [],
+                                                "events": [],
+                                                "favourites": [],
+                                                "requested": [],
+                                                "email": "",
+
+                                                }).then(
                                                     (_) {
 
                                                   // if(value == true){

@@ -38,6 +38,8 @@ class _AddEventsState extends State<AddEvents> {
     eventVM.eventNameController.clear();
     eventVM.eventDateController.clear();
     eventVM.eventPriceController.clear();
+    eventVM.eventStartPriceController.clear();
+    eventVM.eventEndPriceController.clear();
     eventVM.eventLocationController.clear();
     eventVM.eventAddressController.clear();
     eventVM.eventDescriptionController.clear();
@@ -51,9 +53,14 @@ class _AddEventsState extends State<AddEvents> {
 
   // Add event to Firestore
   Future<void> addEvent() async {
+
+    eventVM.loading.value = true;
+
+    eventVM.eventPriceController.text = "${eventVM.eventStartPriceController.text} - ${eventVM.eventEndPriceController.text}";
+
     if (eventVM.eventNameController.text.isEmpty ||
-        eventVM.eventDateController.text.isEmpty ||
         eventVM.eventPriceController.text.isEmpty ||
+        eventVM.eventDateController.text.isEmpty ||
         eventVM.eventAddressController.text.isEmpty ||
         eventVM.eventDescriptionController.text.isEmpty) {
       Get.snackbar(
@@ -63,12 +70,13 @@ class _AddEventsState extends State<AddEvents> {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+      eventVM.loading.value = false;
       return;
     }
 
     try {
 
-      String fileName = 'profile_pictures/${eventVM.eventNameController.text}.jpg';
+      String fileName = 'event_pictures/${eventVM.eventNameController.text}.jpg';
       UploadTask uploadTask = _storage.ref(fileName).putData(
         _image!, // Pass the Uint8List directly
         SettableMetadata(contentType: 'image/jpeg'), // Metadata for image
@@ -81,6 +89,8 @@ class _AddEventsState extends State<AddEvents> {
         'event_name': eventVM.eventNameController.text.trim(),
         'event_date': eventVM.eventDateController.text.trim(),
         'event_price': eventVM.eventPriceController.text.trim(),
+        'event_start_price': eventVM.eventStartPriceController.text.trim(),
+        'event_end_price': eventVM.eventEndPriceController.text.trim(),
         'event_credits': eventVM.eventCreditsController.text.trim(),
         'event_location': eventVM.eventLocationController.text.trim(),
         'event_building': eventVM.eventAddressController.text.trim(),
@@ -92,6 +102,7 @@ class _AddEventsState extends State<AddEvents> {
         'attending': [],
         'attended': [],
         'reviews': [],
+        "average_rating": 0,
         'event_organizer': eventVM.eventOrganizerController.text.trim(),
       });
 
@@ -103,16 +114,19 @@ class _AddEventsState extends State<AddEvents> {
       Get.snackbar(
         "Success",
         "Event added successfully!",
-        snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+
+
 
       // Clear all fields
       eventVM.eventImageController.clear();
       eventVM.eventNameController.clear();
       eventVM.eventDateController.clear();
       eventVM.eventPriceController.clear();
+      eventVM.eventStartPriceController.clear();
+      eventVM.eventEndPriceController.clear();
       eventVM.eventLocationController.clear();
       eventVM.eventAddressController.clear();
       eventVM.eventDescriptionController.clear();
@@ -126,7 +140,13 @@ class _AddEventsState extends State<AddEvents> {
         _image = null;
       });
 
+      eventVM.loading.value = false;
+
+
     } catch (e) {
+      eventVM.loading.value = false;
+
+      debugPrint("Error while posting: $e");
       Get.snackbar(
         "Error",
         "Failed to add event: $e",
@@ -211,6 +231,7 @@ class _AddEventsState extends State<AddEvents> {
                   },
                   onCityChanged: (value) {
                     eventVM.city.value = value ?? "Select City";
+                    eventVM.eventLocationController.text = "${eventVM.city.value}, ${eventVM.country.value}";
                   },
                 ),
               ],
@@ -343,36 +364,56 @@ class _AddEventsState extends State<AddEvents> {
                   _buildInputField("Event Address", context, eventVM.eventAddressController),
                    SizedBox(height: spacing(width)),
                   if(width > 600)
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _selectDate(context),
-                          child: AbsorbPointer(
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _selectDate(context),
+                              child: AbsorbPointer(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                    const SizedBox(height: 5),
+                                    _buildInputField("Event Date", context, eventVM.eventDateController),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: spacing(width)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                Text('Enter Starting Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
                                 const SizedBox(height: 5),
-                                _buildInputField("Event Date", context, eventVM.eventDateController),
+                                _buildInputField("Event Price", context, eventVM.eventStartPriceController, isNumber: true),
                               ],
                             ),
                           ),
-                        ),
-                      ),
-                       SizedBox(width: spacing(width)),
-                      Expanded(
+                          SizedBox(width: spacing(width),),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
 
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Enter Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                            const SizedBox(height: 5),
-                            _buildInputField("Event Price", context, eventVM.eventPriceController, isNumber: true),
-                          ],
-                        ),
+                              children: [
+                                Text('Enter Ending Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                const SizedBox(height: 5),
+                                _buildInputField("Event Price", context, eventVM.eventEndPriceController, isNumber: true),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -391,18 +432,37 @@ class _AddEventsState extends State<AddEvents> {
                         ),
                       ),
                     ),
-                  if(width < 600)
-                    Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: spacing(width)),
-                      Text('Enter Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                      const SizedBox(height: 5),
-                      _buildInputField("Event Price", context, eventVM.eventPriceController, isNumber: true),
-                    ],
-                  ),
                   SizedBox(height: spacing(width)),
+
+                  if(width < 600)
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Enter Starting Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                              const SizedBox(height: 5),
+                              _buildInputField("Event Price", context, eventVM.eventStartPriceController, isNumber: true),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: spacing(width),),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+
+                            children: [
+                              Text('Enter Ending Price',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                              const SizedBox(height: 5),
+                              _buildInputField("Event Price", context, eventVM.eventEndPriceController, isNumber: true),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   if(width > 600)
                   Row(
                     children: [
@@ -464,7 +524,9 @@ class _AddEventsState extends State<AddEvents> {
                       ),
                     ],
                   ),
-                   if(width < 600)
+                  SizedBox(height: spacing(width)),
+
+                  if(width < 600)
                      Column(
                        mainAxisAlignment: MainAxisAlignment.start,
                        crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,6 +570,7 @@ class _AddEventsState extends State<AddEvents> {
                          SizedBox(width: spacing(width)),
                        ],
                      ),
+                  SizedBox(height: spacing(width)),
                   if(width < 600)
                     Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -523,33 +586,38 @@ class _AddEventsState extends State<AddEvents> {
                   const SizedBox(height: 5),
                   _buildInputField("Event Description", context, eventVM.eventDescriptionController, maxLines: 5),
                   const SizedBox(height: 30),
-                  GestureDetector(
-                    onTap: addEvent,
-                    child: Container(
-                      height: 51,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.blueColor, AppColors.lighterBlueColor],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(13),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
+                  Obx(
+                     ()=> GestureDetector(
+                      onTap: addEvent,
+                      child: Container(
+                        height: 51,
+                        width: double.infinity,
+                       // padding: EdgeInsets.symmetric(vertical: 8.h),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.blueColor, AppColors.lighterBlueColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Add Event',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
+                          borderRadius: BorderRadius.circular(13),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child:  Center(
+                          child: eventVM.loading.value == true
+                              ? CircularProgressIndicator(color: Colors.white,)
+                              : Text(
+                            'Add Event',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),

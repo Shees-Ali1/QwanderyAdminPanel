@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
       getPages: const [],
       unknownRoute: GetPage(
         name: '/home',
-        page: () => const LoginPage(),
+        page: () => const HomeMain(),
         // page: () => FirebaseAuth.instance.currentUser == null
         //     ? const LoginPage()
         //     : const HomeMain(),

@@ -103,8 +103,9 @@ class _HomeMainState extends State<HomeMain> {
               margin_bottom: 0,
               borderRadius: 7,
               fontWeight: FontWeight.w600,
-              onPressed: () {
-                // Handle logout logic here
+              onPressed: () async{
+                await  FirebaseAuth.instance.signOut();
+                Get.offAll(LoginPage());
               },
             ),
           ),

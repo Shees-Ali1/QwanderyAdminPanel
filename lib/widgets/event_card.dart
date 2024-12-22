@@ -99,6 +99,7 @@ class _EventCardState extends State<EventCard> {
                   SizedBox(height: 8), // Added spacing between title and other elements
 
                   /// Date and Location Row
+                  if(widget.date.isNotEmpty)
                   Row(
                     children: [
                       Icon(FontAwesomeIcons.calendar, size: 14.0, color: AppColors.backgroundColor),
@@ -109,6 +110,7 @@ class _EventCardState extends State<EventCard> {
                       ),
                     ],
                   ),
+                  if(widget.date.isNotEmpty)
                   SizedBox(height: 8),
                   Row(
                     children: [
@@ -162,7 +164,9 @@ class _EventCardState extends State<EventCard> {
                         eventVM.eventAddressController.text = widget.event!["event_building"];
                         eventVM.eventDescriptionController.text = widget.event!["event_description"];
                         eventVM.eventCreditsController.text = widget.event!["event_credits"];
-                        eventVM.eventOrganizerController..text = widget.event!["event_organizer"];
+                        eventVM.eventOrganizerController.text = widget.event!["event_organizer"];
+                        eventVM.eventStartPriceController.text = widget.event!["event_start_price"];
+                        eventVM.eventEndPriceController.text = widget.event!["event_end_price"];
                         eventVM.event_id.value = widget.event!["event_id"];
 
                       },
