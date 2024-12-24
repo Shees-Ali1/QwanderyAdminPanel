@@ -58,6 +58,7 @@ dependencies:
   file_picker:
   pluto_grid:
   flutter_staggered_grid_view:
+  csv:
 
 
 dev_dependencies:
