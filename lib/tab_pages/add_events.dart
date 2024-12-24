@@ -977,7 +977,7 @@ class _AddEventsState extends State<AddEvents> {
                           child: eventVM.loading.value == true
                               ? CircularProgressIndicator(color: Colors.white,)
                               : Text(
-                            'Use PDF',
+                            'Use CSV',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
