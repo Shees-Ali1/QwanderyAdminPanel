@@ -14,6 +14,7 @@ import 'package:iw_admin_panel/tab_pages/add_users.dart';
 import 'package:iw_admin_panel/tab_pages/edit_events.dart';
 import 'package:iw_admin_panel/tab_pages/online_support.dart';
 import 'package:iw_admin_panel/tab_pages/read.dart';
+import 'package:iw_admin_panel/tab_pages/suggestions.dart';
 import 'package:iw_admin_panel/tab_pages/user_details.dart';
 import 'package:iw_admin_panel/widgets/custom_buuton.dart';
 import 'package:iw_admin_panel/widgets/main_dashboard.dart';
@@ -130,7 +131,9 @@ class _HomeMainState extends State<HomeMain> {
                     ? AddEvents()
                     : sidebarController.selectedTab.value == "Edit Event"
                     ? EditEvents()
-                    : sidebarController.selectedTab.value == "Online Support"
+                    : sidebarController.selectedTab.value == "Suggestions"
+                    ? Suggestions()
+                    : sidebarController.selectedTab.value == "Suggestions"
                     ? OnlineSupport()
                     : LoginPage()
               ),

@@ -5,8 +5,10 @@ import 'package:iw_admin_panel/Login_Page.dart';
 import 'package:iw_admin_panel/colors.dart';
 import 'package:iw_admin_panel/const/images.dart';
 import 'package:iw_admin_panel/controllers/chat_controller.dart';
+import 'package:iw_admin_panel/controllers/suggestion_controller.dart';
 import 'package:iw_admin_panel/sidebar_controller.dart';
 import 'package:iw_admin_panel/widgets/dashboard_widget.dart';
+import 'package:iw_admin_panel/widgets/suggestion_card.dart';
 
 class MainDashboard extends StatefulWidget {
   final bool isDrawer;
@@ -21,6 +23,7 @@ class _MainDashboardState extends State<MainDashboard> {
 
   final SidebarController controller = Get.put(SidebarController());
   final ChatController chatVM = Get.put(ChatController());
+  final SuggestionController suggestVM = Get.put(SuggestionController());
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +67,8 @@ class _MainDashboardState extends State<MainDashboard> {
                 onPressed: (){
                   controller.selectedTab.value = "Users";
                   controller.chat.value = false;
+                  suggestVM.suggestion_id.value = "";
+                  suggestVM.view.value = false;
                   if(widget.isDrawer == true){
                     Get.back();
                   }
@@ -78,6 +83,8 @@ class _MainDashboardState extends State<MainDashboard> {
               onPressed: (){
                 controller.selectedTab.value = "Add Users";
                 controller.chat.value = false;
+                suggestVM.suggestion_id.value = "";
+                suggestVM.view.value = false;
                 if(widget.isDrawer == true){
                   Get.back();
                 }
@@ -92,6 +99,8 @@ class _MainDashboardState extends State<MainDashboard> {
                 onPressed: (){
                   controller.selectedTab.value = "Add Event";
                   controller.chat.value = false;
+                  suggestVM.suggestion_id.value = "";
+                  suggestVM.view.value = false;
                   if(widget.isDrawer == true){
                     Get.back();
                   }                },
@@ -105,6 +114,8 @@ class _MainDashboardState extends State<MainDashboard> {
                 onPressed: (){
                   controller.selectedTab.value = "Edit Event";
                   controller.chat.value = false;
+                  suggestVM.suggestion_id.value = "";
+                  suggestVM.view.value = false;
                   if(widget.isDrawer == true){
                     Get.back();
                   }                },
@@ -113,11 +124,28 @@ class _MainDashboardState extends State<MainDashboard> {
                 isDrawer: widget.isDrawer,
             ),
             DashboardWidget(
+              title: "Suggestions",
+              subTitle: "Suggestions",
+              onPressed: (){
+                controller.selectedTab.value = "Suggestions";
+                controller.chat.value = false;
+                suggestVM.suggestion_id.value = "";
+                suggestVM.view.value = false;
+                if(widget.isDrawer == true){
+                  Get.back();
+                }                },
+              iconData: Icons.settings_suggest_outlined,
+              isSelected: controller.selectedTab.value == "Suggestions" ? true : false,
+              isDrawer: widget.isDrawer,
+            ),
+            DashboardWidget(
                 title: "Online Support",
                 subTitle: "Online Support",
                 onPressed: (){
                   controller.selectedTab.value = "Online Support";
                   controller.chat.value = true;
+                  suggestVM.suggestion_id.value = "";
+                  suggestVM.view.value = false;
                   chatVM.user_id.value = "";
                   if(widget.isDrawer == true){
                     Get.back();

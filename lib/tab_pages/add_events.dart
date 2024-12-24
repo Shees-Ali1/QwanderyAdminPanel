@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:csc_picker/csc_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -45,10 +46,12 @@ class _AddEventsState extends State<AddEvents> {
     eventVM.eventDescriptionController.clear();
     eventVM.eventCreditsController.clear();
     eventVM.eventOrganizerController.clear();
-    eventVM.city.value = "";
-    eventVM.state.value = "";
-    eventVM.country.value = "";
+    eventVM.city.value = "City";
+    eventVM.state.value = "State";
+    eventVM.country.value = "United States";
     eventVM.event_id.value = "";
+    eventVM.credits_and_topics.value = [];
+    eventVM.multiple_dates.value = [];
   }
 
   // Add event to Firestore
@@ -60,8 +63,8 @@ class _AddEventsState extends State<AddEvents> {
 
     if (eventVM.eventNameController.text.isEmpty ||
         eventVM.eventPriceController.text.isEmpty ||
+        eventVM.eventLinkController.text.isEmpty ||
         eventVM.eventDateController.text.isEmpty ||
-        eventVM.eventAddressController.text.isEmpty ||
         eventVM.eventDescriptionController.text.isEmpty) {
       Get.snackbar(
         "Error",
@@ -87,14 +90,18 @@ class _AddEventsState extends State<AddEvents> {
       final docRef = await _firestore.collection('events').add({
         'event_image': downloadUrl,
         'event_name': eventVM.eventNameController.text.trim(),
-        'event_date': eventVM.eventDateController.text.trim(),
+        'event_date': eventVM.single_date.value ? eventVM.eventDateController.text.trim() : "",
         'event_price': eventVM.eventPriceController.text.trim(),
         'event_start_price': eventVM.eventStartPriceController.text.trim(),
         'event_end_price': eventVM.eventEndPriceController.text.trim(),
         'event_credits': eventVM.eventCreditsController.text.trim(),
         'event_location': eventVM.eventLocationController.text.trim(),
-        'event_building': eventVM.eventAddressController.text.trim(),
+        'event_building': eventVM.online_event.value == true ? "" : eventVM.eventAddressController.text.trim(),
         'event_description': eventVM.eventDescriptionController.text.trim(),
+        'event_link': eventVM.eventLinkController.text.trim(),
+        "single_date": eventVM.single_date.value,
+        "online_event": eventVM.online_event.value,
+        "multiple_event_dates": eventVM.single_date.value ? [] : eventVM.multiple_dates,
         'created_at': FieldValue.serverTimestamp(),
         'planned': [],
         'following': [],
@@ -102,6 +109,7 @@ class _AddEventsState extends State<AddEvents> {
         'attending': [],
         'attended': [],
         'reviews': [],
+        "credits_and_topics": eventVM.credits_and_topics,
         "average_rating": 0,
         'event_organizer': eventVM.eventOrganizerController.text.trim(),
       });
@@ -123,6 +131,7 @@ class _AddEventsState extends State<AddEvents> {
       // Clear all fields
       eventVM.eventImageController.clear();
       eventVM.eventNameController.clear();
+      eventVM.eventLinkController.clear();
       eventVM.eventDateController.clear();
       eventVM.eventPriceController.clear();
       eventVM.eventStartPriceController.clear();
@@ -132,9 +141,13 @@ class _AddEventsState extends State<AddEvents> {
       eventVM.eventDescriptionController.clear();
       eventVM.eventCreditsController.clear();
       eventVM.eventOrganizerController.clear();
-      eventVM.city.value = "";
-      eventVM.state.value = "";
-      eventVM.country.value = "";
+      eventVM.city.value = "City";
+      eventVM.state.value = "State";
+      eventVM.country.value = "United States";
+      eventVM.online_event.value = false;
+      eventVM.multiple_dates.clear();
+      eventVM.single_date.value = true;
+      eventVM.credits_and_topics.clear();
 
       setState(() {
         _image = null;
@@ -187,7 +200,17 @@ class _AddEventsState extends State<AddEvents> {
     if (selectedDate != null) {
       // Format the selected date to your desired format
       String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-      eventVM.eventDateController.text = formattedDate; // Display the formatted date in the controller
+
+      if(eventVM.single_date.value == true){
+        eventVM.eventDateController.text = formattedDate;
+        eventVM.multiple_dates.clear();
+      } else {
+        if(!eventVM.multiple_dates.contains(formattedDate)){
+          eventVM.multiple_dates.add(formattedDate);
+          eventVM.eventDateController.text = eventVM.eventDateController.text + formattedDate + ", ";
+
+        }
+      }
     }
   }
 
@@ -207,6 +230,7 @@ class _AddEventsState extends State<AddEvents> {
                 CSCPicker(
                   layout: Layout.vertical,
                   flagState: CountryFlag.DISABLE,
+                  defaultCountry: CscCountry.United_States,
                   showStates: true, // Enable state picker
                   showCities: true, // Enable city picker
                   dropdownDecoration: BoxDecoration(
@@ -235,6 +259,98 @@ class _AddEventsState extends State<AddEvents> {
                   },
                 ),
               ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCreditDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            padding: EdgeInsets.symmetric(horizontal: 13),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(colors: [AppColors.blueColor, AppColors.greenbutton]),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 20),
+                  Text(
+                    "Enter Details",
+                    style: jost600(16, Colors.white),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Enter Topic',
+                    style: jost500(16, Colors.white),
+                  ),
+                  SizedBox(height: 15),
+                  _buildInputField("Topic",context, eventVM.eventTopicController, isNumber: false),
+                  SizedBox(height: 10),
+                  Text(
+                    'Enter Accreditor',
+                    style: jost500(16, Colors.white),
+                  ),
+                  SizedBox(height: 15),
+                  _buildInputField("Accreditor", context, eventVM.eventAccreditorController, isNumber: false),
+                  Text(
+                    'Enter Credit',
+                    style: jost500(16, Colors.white),
+                  ),
+                  SizedBox(height: 15),
+                  _buildInputField("Event Credits", context,eventVM.eventCreditsController, isNumber: true),
+                  SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Cancel",
+                          style: jost500(16, Colors.red),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          if (eventVM.eventCreditsController.text.isNotEmpty &&
+                              eventVM.eventTopicController.text.isNotEmpty &&
+                              eventVM.eventAccreditorController.text.isNotEmpty) {
+
+                            var map = {
+                              "topic": eventVM.eventTopicController.text.trim(),
+                              "accreditor": eventVM.eventAccreditorController.text.trim(),
+                              "credits_earned": double.parse(eventVM.eventCreditsController.text.trim()),
+                            };
+
+                            eventVM.credits_and_topics.add(map);
+                            debugPrint("Credits: ${eventVM.credits_and_topics}");
+
+                            eventVM.eventCreditsController.clear();
+                            eventVM.eventTopicController.clear();
+                            eventVM.eventAccreditorController.clear();
+                          }
+
+                        },
+                        child: Text(
+                          "Add",
+                          style: jost500(16, Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         );
@@ -359,33 +475,198 @@ class _AddEventsState extends State<AddEvents> {
                   const SizedBox(height: 5),
                   _buildInputField("Event Organizer", context, eventVM.eventOrganizerController),
                    SizedBox(height: spacing(width)),
-                  Text('Enter Event Address',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                  Text('Enter Event Link',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
                   const SizedBox(height: 5),
-                  _buildInputField("Event Address", context, eventVM.eventAddressController),
+                  _buildInputField("Event Link", context, eventVM.eventLinkController),
                    SizedBox(height: spacing(width)),
+                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Online Event',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                      Spacer(),
+                      Text('Yes',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                      Obx(
+                            ()=> GestureDetector(
+                          onTap: (){
+                            eventVM.online_event.value = true;
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                            margin: EdgeInsets.only(left: 6, right: 10,),
+                            decoration: BoxDecoration(
+                              color: eventVM.online_event.value == true ? AppColors.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                              border: Border.all(
+                                width: 1,
+                                color:eventVM.online_event.value == true ? AppColors.primaryColor : Colors.white,
+                              ),
+                            ),
+                            child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.online_event.value == true ? Colors.white : Colors.transparent,) ,
+                          ),
+                        ),
+                      ),
+                      Text('No',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                      Obx(
+                            ()=> GestureDetector(
+                          onTap: (){
+                            eventVM.online_event.value = false;
+                          },
+                          child: Container(
+                            margin: EdgeInsets.only(left: 6, right: 0,),
+                            padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                            decoration: BoxDecoration(
+                              color: eventVM.online_event.value == false ? AppColors.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                              border: Border.all(
+                                width: 1,
+                                color:eventVM.online_event.value == false ? AppColors.primaryColor : Colors.white,
+                              ),
+                            ),
+                            child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.online_event.value == false ? Colors.white : Colors.transparent,) ,
+                          ),
+                        ),
+                      )
+
+
+                    ],
+                  ),
+                    Obx(
+                      ()=> eventVM.online_event.value == false ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 5),
+                          Text('Enter Event Address',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                          const SizedBox(height: 5),
+                          _buildInputField("Event Address", context, eventVM.eventAddressController),
+                        ],
+                      ) : SizedBox(),
+                    ),
+                  SizedBox(height: spacing(width)),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Single Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                      Spacer(),
+                      Text('Yes',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                      Obx(
+                            ()=> GestureDetector(
+                          onTap: (){
+                            eventVM.single_date.value = true;
+                            eventVM.multiple_dates.clear();
+                            eventVM.eventDateController.clear();
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                            margin: EdgeInsets.only(left: 6, right: 10,),
+                            decoration: BoxDecoration(
+                              color: eventVM.single_date.value == true ? AppColors.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                              border: Border.all(
+                                width: 1,
+                                color:eventVM.single_date.value == true ? AppColors.primaryColor : Colors.white,
+                              ),
+                            ),
+                            child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.single_date.value == true ? Colors.white : Colors.transparent,) ,
+                          ),
+                        ),
+                      ),
+                      Text('No',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                      Obx(
+                            ()=> GestureDetector(
+                          onTap: (){
+                            eventVM.single_date.value = false;
+                          },
+                          child: Container(
+                            margin: EdgeInsets.only(left: 6, right: 0,),
+                            padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                            decoration: BoxDecoration(
+                              color: eventVM.single_date.value == false ? AppColors.primaryColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                              border: Border.all(
+                                width: 1,
+                                color:eventVM.single_date.value == false ? AppColors.primaryColor : Colors.white,
+                              ),
+                            ),
+                            child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.single_date.value == false ? Colors.white : Colors.transparent,) ,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // SizedBox(height: spacing(width)),
+                  SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                                  Obx(()=> eventVM.single_date.value == false ? GestureDetector(
+                                      onTap: (){
+                                        _selectDate(context);
+                                      },
+                                      child: Icon(CupertinoIcons.plus, size: 20, color: Colors.white,)): SizedBox()) ,
+                                ],
+                              ),
+                              const SizedBox(height: 5),
+                              Obx((){
+                                if(eventVM.single_date.value == true){
+                                  return _buildInputField("Event Date", context, eventVM.eventDateController);
+                                } else if(eventVM.single_date.value == false && eventVM.multiple_dates.isNotEmpty){
+                                  return SizedBox(
+                                    height: 80,
+                                    child: ListView.builder(
+                                        itemCount: eventVM.multiple_dates.length,
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder: (context, index){
+                                          return Container(
+                                            width: 120,
+                                            padding: EdgeInsets.all(8),
+                                            margin: EdgeInsets.only(left: index != 0 ? 10 : 0,),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.blueColor,
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: (){
+                                                    eventVM.multiple_dates.remove(eventVM.multiple_dates[index]);
+                                                  },
+                                                  child: Align(
+                                                    alignment: Alignment.topRight,
+                                                    child: Icon(CupertinoIcons.minus_circle_fill, size: 20, color: Colors.white,),
+                                                  ),
+                                                ),
+                                                Text(eventVM.multiple_dates[index], style: jost500(15, Colors.white),)
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                  );
+                                } else {
+                                  return SizedBox();
+                                }
+                              }),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   if(width > 600)
                   Column(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _selectDate(context),
-                              child: AbsorbPointer(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                                    const SizedBox(height: 5),
-                                    _buildInputField("Event Date", context, eventVM.eventDateController),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+
                       SizedBox(height: spacing(width)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -417,23 +698,8 @@ class _AddEventsState extends State<AddEvents> {
                       ),
                     ],
                   ),
-                  if(width < 600)
-                  GestureDetector(
-                      onTap: () => _selectDate(context),
-                      child: AbsorbPointer(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                            const SizedBox(height: 5),
-                            _buildInputField("Event Date", context, eventVM.eventDateController),
-                          ],
-                        ),
-                      ),
-                    ),
-                  SizedBox(height: spacing(width)),
 
+                  SizedBox(height: spacing(width)),
                   if(width < 600)
                   Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -510,21 +776,8 @@ class _AddEventsState extends State<AddEvents> {
                           ],
                         ),
                       ),
-                      SizedBox(width: spacing(width)),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Enter Event Credits',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                            const SizedBox(height: 5),
-                            _buildInputField("Event Credits", context, eventVM.eventCreditsController),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ]
                   ),
-                  SizedBox(height: spacing(width)),
 
                   if(width < 600)
                      Column(
@@ -556,7 +809,7 @@ class _AddEventsState extends State<AddEvents> {
                                        ()=> Expanded(
                                      child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
                                        overflow: TextOverflow.ellipsis,
-                                       style: jost400(17, Colors.black),
+                                       style: jost400(width < 425 ? headingFont : 17, Colors.black),
 
                                      ),
                                    ),
@@ -571,16 +824,82 @@ class _AddEventsState extends State<AddEvents> {
                        ],
                      ),
                   SizedBox(height: spacing(width)),
-                  if(width < 600)
-                    Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text('Enter Event Credits',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                      const SizedBox(height: 5),
-                      _buildInputField("Event Credits", context, eventVM.eventCreditsController),
+                      Text('Enter Event Topics & Credits',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                      GestureDetector(
+                        onTap: (){
+                          _showCreditDialog(context);
+                        },
+                          child: Icon(CupertinoIcons.plus, size: 20, color: Colors.white,))
                     ],
                   ),
+                  Obx((){
+                    if(eventVM.credits_and_topics.isNotEmpty){
+                      return SizedBox(
+                        height: 145,
+                        child: ListView.builder(
+                          itemCount: eventVM.credits_and_topics.length,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index){
+                          return Container(
+                            width: 200,
+                            padding: EdgeInsets.all(8),
+                            margin: EdgeInsets.only(left: index != 0 ? 10 : 0,),
+                            decoration: BoxDecoration(
+                              color: AppColors.blueColor,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: (){
+                                    eventVM.credits_and_topics.removeWhere((credit)=> credit["topic"] == eventVM.credits_and_topics[index]["topic"]);
+                                  },
+                                  child: Align(
+                                    alignment: Alignment.topRight,
+                                    child: Icon(CupertinoIcons.minus_circle_fill, size: 20, color: Colors.white,),
+                                  ),
+                                ),
+                                SizedBox(height: 30,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text("Topic:", style: jost500(15, Colors.white),),
+                                    Text(eventVM.credits_and_topics[index]["topic"], style: jost500(12, Colors.white),),
+                                  ],
+                                ),
+                                SizedBox(height: 5,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text("Accreditor:", style: jost500(15, Colors.white),),
+                                    Text(eventVM.credits_and_topics[index]["accreditor"], style: jost500(12, Colors.white),),
+                                  ],
+                                ),
+                                SizedBox(height: 5,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text("Credits:", style: jost500(15, Colors.white),),
+                                    Text(eventVM.credits_and_topics[index]["credits_earned"].toString(), style: jost500(12, Colors.white),),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      );
+                    } else {
+                     return SizedBox();
+                    }
+                  }),
                   SizedBox(height: spacing(width)),
                   Text('Enter Description',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
                   const SizedBox(height: 5),
@@ -588,7 +907,11 @@ class _AddEventsState extends State<AddEvents> {
                   const SizedBox(height: 30),
                   Obx(
                      ()=> GestureDetector(
-                      onTap: addEvent,
+                       onTap: (){
+                         if(eventVM.csv_loading.value != true || eventVM.loading.value != true){
+                           addEvent();
+                         }
+                       },
                       child: Container(
                         height: 51,
                         width: double.infinity,
@@ -613,6 +936,48 @@ class _AddEventsState extends State<AddEvents> {
                               ? CircularProgressIndicator(color: Colors.white,)
                               : Text(
                             'Add Event',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Obx(
+                        ()=> GestureDetector(
+                      onTap: (){
+                        if(eventVM.csv_loading.value != true || eventVM.loading.value != true){
+                          eventVM.pickAndExtractCsv();
+                        }
+                      },
+                      child: Container(
+                        height: 51,
+                        width: double.infinity,
+                        // padding: EdgeInsets.symmetric(vertical: 8.h),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.blueColor, AppColors.lighterBlueColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(13),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child:  Center(
+                          child: eventVM.loading.value == true
+                              ? CircularProgressIndicator(color: Colors.white,)
+                              : Text(
+                            'Use PDF',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,

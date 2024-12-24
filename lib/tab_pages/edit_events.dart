@@ -6,6 +6,7 @@ import 'package:csc_picker/csc_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -44,12 +45,15 @@ class _EditEventsState extends State<EditEvents> {
 
     eventVM.loading.value = true;
 
+    eventVM.eventPriceController.text = "${eventVM.eventStartPriceController.text} - ${eventVM.eventEndPriceController.text}";
+
+
     if (eventVM.eventNameController.text.isEmpty ||
         eventVM.eventImageController.text.isEmpty ||
+        eventVM.eventLinkController.text.isEmpty ||
         eventVM.eventDateController.text.isEmpty ||
         eventVM.eventPriceController.text.isEmpty ||
         eventVM.eventLocationController.text.isEmpty ||
-        eventVM.eventAddressController.text.isEmpty ||
         eventVM.eventDescriptionController.text.isEmpty) {
       Get.snackbar(
         "Error",
@@ -85,8 +89,13 @@ class _EditEventsState extends State<EditEvents> {
         'event_end_price': eventVM.eventEndPriceController.text.trim(),
         'event_credits': eventVM.eventCreditsController.text.trim(),
         'event_location': eventVM.eventLocationController.text.trim(),
-        'event_building': eventVM.eventAddressController.text.trim(),
+        'event_building': eventVM.online_event.value == true ? "" : eventVM.eventAddressController.text.trim(),
         'event_description': eventVM.eventDescriptionController.text.trim(),
+        'event_link': eventVM.eventLinkController.text.trim(),
+        "single_date": eventVM.single_date.value,
+        "online_event": eventVM.online_event.value,
+        "multiple_event_dates": eventVM.single_date.value ? [] : eventVM.multiple_dates,
+        "credits_and_topics": eventVM.credits_and_topics,
         'created_at': FieldValue.serverTimestamp(),
         'planned': [],
         'following': [],
@@ -108,6 +117,7 @@ class _EditEventsState extends State<EditEvents> {
       // Clear all fields
       eventVM.eventImageController.clear();
       eventVM.eventNameController.clear();
+      eventVM.eventLinkController.clear();
       eventVM.eventDateController.clear();
       eventVM.eventPriceController.clear();
       eventVM.eventStartPriceController.clear();
@@ -117,10 +127,14 @@ class _EditEventsState extends State<EditEvents> {
       eventVM.eventDescriptionController.clear();
       eventVM.eventCreditsController.clear();
       eventVM.eventOrganizerController.clear();
-      eventVM.city.value = "";
-      eventVM.state.value = "";
-      eventVM.country.value = "";
       eventVM.event_id.value = "";
+      eventVM.city.value = "City";
+      eventVM.state.value = "State";
+      eventVM.country.value = "United States";
+      eventVM.online_event.value = false;
+      eventVM.multiple_dates.clear();
+      eventVM.single_date.value = true;
+      eventVM.credits_and_topics.clear();
 
       eventVM.loading.value = false;
     } catch (e) {
@@ -175,28 +189,32 @@ class _EditEventsState extends State<EditEvents> {
         colorText: Colors.white,
         backgroundColor: AppColors.blueColor,
       );
-    } else if (eventVM.eventAddressController.text.isEmpty) {
-      Get.snackbar(
-        "Event Address is empty!",
-        "Please fill in the event address.",
-        colorText: Colors.white,
-        backgroundColor: AppColors.blueColor,
-      );
-    } else if (eventVM.eventDescriptionController.text.isEmpty) {
+    }
+    // else if (eventVM.eventAddressController.text.isEmpty) {
+    //   Get.snackbar(
+    //     "Event Address is empty!",
+    //     "Please fill in the event address.",
+    //     colorText: Colors.white,
+    //     backgroundColor: AppColors.blueColor,
+    //   );
+    // }
+    else if (eventVM.eventDescriptionController.text.isEmpty) {
       Get.snackbar(
         "Event Description is empty!",
         "Please provide a description for the event.",
         colorText: Colors.white,
         backgroundColor: AppColors.blueColor,
       );
-    } else if (eventVM.eventCreditsController.text.isEmpty) {
-      Get.snackbar(
-        "Event Credits are empty!",
-        "Please enter the credits for the event.",
-        colorText: Colors.white,
-        backgroundColor: AppColors.blueColor,
-      );
-    } else if (eventVM.eventOrganizerController.text.isEmpty) {
+    }
+    // else if (eventVM.eventCreditsController.text.isEmpty) {
+    //   Get.snackbar(
+    //     "Event Credits are empty!",
+    //     "Please enter the credits for the event.",
+    //     colorText: Colors.white,
+    //     backgroundColor: AppColors.blueColor,
+    //   );
+    // }
+    else if (eventVM.eventOrganizerController.text.isEmpty) {
       Get.snackbar(
         "Event Organizer is empty!",
         "Please provide the event organizer's name.",
@@ -216,7 +234,6 @@ class _EditEventsState extends State<EditEvents> {
 
   }
 
-  // Date picker function
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selectedDate = await showDatePicker(
 
@@ -247,8 +264,113 @@ class _EditEventsState extends State<EditEvents> {
     if (selectedDate != null) {
       // Format the selected date to your desired format
       String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-      eventVM.eventDateController.text = formattedDate; // Display the formatted date in the controller
+
+      if(eventVM.single_date.value == true){
+        eventVM.eventDateController.text = formattedDate;
+        eventVM.multiple_dates.clear();
+      } else {
+        if(!eventVM.multiple_dates.contains(formattedDate)){
+          eventVM.multiple_dates.add(formattedDate);
+          if(eventVM.eventDateController.text.isEmpty){
+            eventVM.eventDateController.text = eventVM.eventDateController.text + formattedDate + ", ";
+          } else {
+            eventVM.eventDateController.text =  eventVM.eventDateController.text + ", " + formattedDate + ", ";
+
+          }
+        }
+      }
     }
+  }
+
+  void _showCreditDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            padding: EdgeInsets.symmetric(horizontal: 13),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(colors: [AppColors.blueColor, AppColors.greenbutton]),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 20),
+                  Text(
+                    "Enter Details",
+                    style: jost600(16, Colors.white),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Enter Topic',
+                    style: jost500(16, Colors.white),
+                  ),
+                  SizedBox(height: 15),
+                  _buildInputField("Topic",context, eventVM.eventTopicController, isNumber: false),
+                  SizedBox(height: 10),
+                  Text(
+                    'Enter Accreditor',
+                    style: jost500(16, Colors.white),
+                  ),
+                  SizedBox(height: 15),
+                  _buildInputField("Accreditor", context, eventVM.eventAccreditorController, isNumber: false),
+                  Text(
+                    'Enter Credit',
+                    style: jost500(16, Colors.white),
+                  ),
+                  SizedBox(height: 15),
+                  _buildInputField("Event Credits", context,eventVM.eventCreditsController, isNumber: true),
+                  SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Cancel",
+                          style: jost500(16, Colors.red),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          if (eventVM.eventCreditsController.text.isNotEmpty &&
+                              eventVM.eventTopicController.text.isNotEmpty &&
+                              eventVM.eventAccreditorController.text.isNotEmpty) {
+
+                            var map = {
+                              "topic": eventVM.eventTopicController.text.trim(),
+                              "accreditor": eventVM.eventAccreditorController.text.trim(),
+                              "credits_earned": double.parse(eventVM.eventCreditsController.text.trim()),
+                            };
+
+                            eventVM.credits_and_topics.add(map);
+
+                            eventVM.eventCreditsController.clear();
+                            eventVM.eventTopicController.clear();
+                            eventVM.eventAccreditorController.clear();
+                          }
+
+                        },
+                        child: Text(
+                          "Add",
+                          style: jost500(16, Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _openLocationPickerDialog() {
@@ -267,6 +389,8 @@ class _EditEventsState extends State<EditEvents> {
                 CSCPicker(
                   layout: Layout.vertical,
                   flagState: CountryFlag.DISABLE,
+                  defaultCountry: CscCountry.United_States,
+
                   showStates: true, // Enable state picker
                   showCities: true, // Enable city picker
                   dropdownDecoration: BoxDecoration(
@@ -521,33 +645,194 @@ class _EditEventsState extends State<EditEvents> {
                 const SizedBox(height: 5),
                 _buildInputField("Event Organizer", context, eventVM.eventOrganizerController),
                 SizedBox(height: spacing(width)),
-                Text('Enter Event Address',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                Text('Enter Event Link',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
                 const SizedBox(height: 5),
-                _buildInputField("Event Address", context, eventVM.eventAddressController),
+                _buildInputField("Event Link", context, eventVM.eventLinkController),
                 SizedBox(height: spacing(width)),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Online Event',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                    Spacer(),
+                    Text('Yes',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                    Obx(
+                          ()=> GestureDetector(
+                        onTap: (){
+                          eventVM.online_event.value = true;
+
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                          margin: EdgeInsets.only(left: 6, right: 10,),
+                          decoration: BoxDecoration(
+                            color: eventVM.online_event.value == true ? AppColors.primaryColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                            border: Border.all(
+                              width: 1,
+                              color:eventVM.online_event.value == true ? AppColors.primaryColor : Colors.white,
+                            ),
+                          ),
+                          child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.online_event.value == true ? Colors.white : Colors.transparent,) ,
+                        ),
+                      ),
+                    ),
+                    Text('No',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                    Obx(
+                          ()=> GestureDetector(
+                        onTap: (){
+                          eventVM.online_event.value = false;
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(left: 6, right: 0,),
+                          padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                          decoration: BoxDecoration(
+                            color: eventVM.online_event.value == false ? AppColors.primaryColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                            border: Border.all(
+                              width: 1,
+                              color:eventVM.online_event.value == false ? AppColors.primaryColor : Colors.white,
+                            ),
+                          ),
+                          child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.online_event.value == false ? Colors.white : Colors.transparent,) ,
+                        ),
+                      ),
+                    )
+
+
+                  ],
+                ),
+                Obx(
+                      ()=> eventVM.online_event.value == false ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 5),
+                      Text('Enter Event Address',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                      const SizedBox(height: 5),
+                      _buildInputField("Event Address", context, eventVM.eventAddressController),
+                    ],
+                  ) : SizedBox(),
+                ),
+                SizedBox(height: spacing(width)),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Single Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                    Spacer(),
+                    Text('Yes',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                    Obx(
+                          ()=> GestureDetector(
+                        onTap: (){
+                          eventVM.single_date.value = true;
+                          eventVM.eventDateController.clear();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                          margin: EdgeInsets.only(left: 6, right: 10,),
+                          decoration: BoxDecoration(
+                            color: eventVM.single_date.value == true ? AppColors.primaryColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                            border: Border.all(
+                              width: 1,
+                              color:eventVM.single_date.value == true ? AppColors.primaryColor : Colors.white,
+                            ),
+                          ),
+                          child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.single_date.value == true ? Colors.white : Colors.transparent,) ,
+                        ),
+                      ),
+                    ),
+                    Text('No',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: width < 425 ? headingFont : 15),),
+                    Obx(
+                          ()=> GestureDetector(
+                        onTap: (){
+                          eventVM.single_date.value = false;
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(left: 6, right: 0,),
+                          padding: EdgeInsets.all( width <= 1024 && width > 768 ? 5 : width <= 768 && width > 280 ? 4 : 8),
+                          decoration: BoxDecoration(
+                            color: eventVM.single_date.value == false ? AppColors.primaryColor : Colors.transparent,
+                            borderRadius: BorderRadius.circular(width <= 1024 && width > 768 ? 9 : width <= 768 && width > 280 ? 6 : 12),
+                            border: Border.all(
+                              width: 1,
+                              color:eventVM.single_date.value == false ? AppColors.primaryColor : Colors.white,
+                            ),
+                          ),
+                          child: Icon(Icons.check, size: width <= 1024 && width > 768 ? 15 : width <= 768 && width > 280 ? 12 : 20, color: eventVM.single_date.value == false ? Colors.white : Colors.transparent,) ,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5,),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                              Obx(()=> eventVM.single_date.value == false ? GestureDetector(
+                                  onTap: (){
+                                    _selectDate(context);
+                                  },
+                                  child: Icon(CupertinoIcons.plus, size: 20, color: Colors.white,)): SizedBox()) ,
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          Obx((){
+                            if(eventVM.single_date.value == true){
+                              return _buildInputField("Event Date", context, eventVM.eventDateController);
+                            } else if(eventVM.single_date.value == false && eventVM.multiple_dates.isNotEmpty){
+                              return SizedBox(
+                                height: 80,
+                                child: ListView.builder(
+                                    itemCount: eventVM.multiple_dates.length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemBuilder: (context, index){
+                                      return Container(
+                                        width: 120,
+                                        padding: EdgeInsets.all(8),
+                                        margin: EdgeInsets.only(left: index != 0 ? 10 : 0,),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.blueColor,
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            GestureDetector(
+                                              onTap: (){
+                                                eventVM.multiple_dates.remove(eventVM.multiple_dates[index]);
+                                              },
+                                              child: Align(
+                                                alignment: Alignment.topRight,
+                                                child: Icon(CupertinoIcons.minus_circle_fill, size: 20, color: Colors.white,),
+                                              ),
+                                            ),
+                                            Text(eventVM.multiple_dates[index], style: jost500(15, Colors.white),)
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                              );
+                            } else {
+                              return SizedBox();
+                            }
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 if(width > 600)
                   Column(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => _selectDate(context),
-                              child: AbsorbPointer(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                                    const SizedBox(height: 5),
-                                    _buildInputField("Event Date", context, eventVM.eventDateController),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+
                       SizedBox(height: spacing(width)),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -579,21 +864,7 @@ class _EditEventsState extends State<EditEvents> {
                       ),
                     ],
                   ),
-                if(width < 600)
-                  GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: AbsorbPointer(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Enter Date',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                          const SizedBox(height: 5),
-                          _buildInputField("Event Date", context, eventVM.eventDateController),
-                        ],
-                      ),
-                    ),
-                  ),
+
                 if(width < 600)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -656,7 +927,7 @@ class _EditEventsState extends State<EditEvents> {
                                     SizedBox(width: 10),
                                     Obx(
                                           ()=> Expanded(
-                                        child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
+                                            child: Text( ( eventVM.eventLocationController.text.isNotEmpty && eventVM.city.value == "City") ? eventVM.eventLocationController.text : '${eventVM.city.value}, ${eventVM.country.value}',
                                           overflow: TextOverflow.ellipsis,
                                           style: jost400(16, Colors.black),
                                         ),
@@ -671,18 +942,7 @@ class _EditEventsState extends State<EditEvents> {
                           ],
                         ),
                       ),
-                      SizedBox(width: spacing(width)),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Enter Event Credits',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                            const SizedBox(height: 5),
-                            _buildInputField("Event Credits", context, eventVM.eventCreditsController),
-                          ],
-                        ),
-                      ),
+
                     ],
                   ),
                 if(width < 600)
@@ -713,7 +973,7 @@ class _EditEventsState extends State<EditEvents> {
                               SizedBox(width: 10),
                               Obx(
                                     ()=> Expanded(
-                                  child: Text( ( eventVM.city.value == "" && eventVM.country.value == "" ) ? "Select City, Country" : '${eventVM.city.value}, ${eventVM.country.value}',
+                                  child: Text( ( eventVM.eventLocationController.text.isNotEmpty && eventVM.city.value == "City") ? eventVM.eventLocationController.text : '${eventVM.city.value}, ${eventVM.country.value}',
                                     overflow: TextOverflow.ellipsis,
                                     style: jost400(17, Colors.black),
 
@@ -729,16 +989,83 @@ class _EditEventsState extends State<EditEvents> {
                       SizedBox(width: spacing(width)),
                     ],
                   ),
-                if(width < 600)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Enter Event Credits',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
-                      const SizedBox(height: 5),
-                      _buildInputField("Event Credits", context, eventVM.eventCreditsController),
-                    ],
-                  ),
+                SizedBox(height: spacing(width)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Enter Event Topics & Credits',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
+                    GestureDetector(
+                        onTap: (){
+                          _showCreditDialog(context);
+                        },
+                        child: Icon(CupertinoIcons.plus, size: 20, color: Colors.white,))
+                  ],
+                ),
+                Obx((){
+                  if(eventVM.credits_and_topics.isNotEmpty){
+                    return SizedBox(
+                      height: 145,
+                      child: ListView.builder(
+                          itemCount: eventVM.credits_and_topics.length,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index){
+                            return Container(
+                              width: 200,
+                              padding: EdgeInsets.all(8),
+                              margin: EdgeInsets.only(left: index != 0 ? 10 : 0,),
+                              decoration: BoxDecoration(
+                                color: AppColors.blueColor,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  GestureDetector(
+                                    onTap: (){
+                                      eventVM.credits_and_topics.removeWhere((credit)=> credit["topic"] == eventVM.credits_and_topics[index]["topic"]);
+                                    },
+                                    child: Align(
+                                      alignment: Alignment.topRight,
+                                      child: Icon(CupertinoIcons.minus_circle_fill, size: 20, color: Colors.white,),
+                                    ),
+                                  ),
+                                  SizedBox(height: 30,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text("Topic:", style: jost500(15, Colors.white),),
+                                      Text(eventVM.credits_and_topics[index]["topic"], style: jost500(12, Colors.white),),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text("Accreditor:", style: jost500(15, Colors.white),),
+                                      Text(eventVM.credits_and_topics[index]["accreditor"], style: jost500(12, Colors.white),),
+                                    ],
+                                  ),
+                                  SizedBox(height: 5,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text("Credits:", style: jost500(15, Colors.white),),
+                                      Text(eventVM.credits_and_topics[index]["credits_earned"].toString(), style: jost500(12, Colors.white),),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                    );
+                  } else {
+                    return SizedBox();
+                  }
+                }),
                 SizedBox(height: spacing(width)),
                 Text('Enter Description',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,fontSize: headingFont),),
                 const SizedBox(height: 5),

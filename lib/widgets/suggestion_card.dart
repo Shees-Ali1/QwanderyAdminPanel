@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:iw_admin_panel/colors.dart';
-import 'package:iw_admin_panel/const/images.dart';
 import 'package:iw_admin_panel/const/textstyle.dart';
-import 'package:iw_admin_panel/controllers/event_controller.dart';
+import 'package:iw_admin_panel/controllers/suggestion_controller.dart';
 import 'package:iw_admin_panel/sidebar_controller.dart';
 
-class EventCard extends StatefulWidget {
+class SuggestionCard extends StatefulWidget {
+  const SuggestionCard({super.key, required this.imageAsset, required this.title, required this.date, required this.location, required this.credits, required this.priceRange,  this.event});
+
   final String imageAsset; // Change this to imageAsset
   final String title;
   final String date;
@@ -18,24 +18,39 @@ class EventCard extends StatefulWidget {
   final String priceRange;
   final QueryDocumentSnapshot<Object?>? event;
 
-  const EventCard({
-    Key? key,
-    required this.imageAsset, // Update constructor parameter
-    required this.title,
-    required this.date,
-    required this.location,
-    required this.credits,
-    required this.priceRange,
-    required this.event,
-  }) : super(key: key);
-
   @override
-  State<EventCard> createState() => _EventCardState();
+  State<SuggestionCard> createState() => _SuggestionCardState();
 }
 
-class _EventCardState extends State<EventCard> {
-  final EventController eventVM = Get.put(EventController());
+class _SuggestionCardState extends State<SuggestionCard> {
+  final SuggestionController suggestVM = Get.put(SuggestionController());
   final SidebarController sidebarController = Get.put(SidebarController());
+
+
+  Future<int> _fetchSuggestionsCount() async {
+    try {
+      // Get the event document
+      DocumentSnapshot eventDoc = await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.event!["event_id"])
+          .get();
+
+      // Check if the event document exists
+      if (eventDoc.exists) {
+        // Get the suggestions subcollection
+        CollectionReference suggestionsRef = eventDoc.reference.collection('suggestions');
+
+        // Get the count of documents in the subcollection
+        QuerySnapshot suggestionsSnapshot = await suggestionsRef.get();
+        return suggestionsSnapshot.docs.length; // Return the count
+      } else {
+        return 0; // If event document doesn't exist
+      }
+    } catch (e) {
+      print("Error fetching suggestions: $e");
+      return 0; // Return 0 in case of an error
+    }
+  }
 
   int _getTotalCredits(List ceCreditsList) {
     int credits = 0;
@@ -52,6 +67,7 @@ class _EventCardState extends State<EventCard> {
 
   @override
   Widget build(BuildContext context) {
+
     final width = MediaQuery.of(context).size.width;
 
 
@@ -148,15 +164,39 @@ class _EventCardState extends State<EventCard> {
                     ],
                   ),
                   SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(FontAwesomeIcons.tag, size: 14.0, color: AppColors.backgroundColor),
-                      SizedBox(width: 6),
-                      Text(
-                        widget.priceRange,
-                        style: jost600(fontSize, AppColors.backgroundColor),
-                      ),
-                    ],
+                  FutureBuilder<int>(
+                    future: _fetchSuggestionsCount(), // Call the fetch function
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Row(
+                          children: [
+                            Icon(Icons.settings_suggest_outlined, size: 14.0, color: AppColors.backgroundColor),
+                            SizedBox(width: 10), // Space between price range and suggestion count
+                            Text(
+                              "...", // Show suggestions count
+                              style: jost600(14.0, AppColors.backgroundColor),
+                            ),
+                          ],
+                        ); // Show loading while waiting
+                      } else if (snapshot.hasError) {
+                        return Text("Error: ${snapshot.error}"); // Show error if any
+                      } else if (snapshot.hasData) {
+                        int suggestionsCount = snapshot.data ?? 0;
+
+                        return Row(
+                          children: [
+                            Icon(Icons.settings_suggest_outlined, size: 14.0, color: AppColors.backgroundColor),
+                            SizedBox(width: 10), // Space between price range and suggestion count
+                            Text(
+                              suggestionsCount.toString(), // Show suggestions count
+                              style: jost600(14.0, AppColors.backgroundColor),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Text("No suggestions"); // Default message if no data
+                      }
+                    },
                   ),
                   SizedBox(height: 10),
 
@@ -166,28 +206,14 @@ class _EventCardState extends State<EventCard> {
                     height: 28,
                     child: ElevatedButton(
                       onPressed: () {
-                        eventVM.eventImageController.text = widget.event!["event_image"];
-                        eventVM.eventNameController.text = widget.event!["event_name"];
-                        eventVM.eventDateController.text = widget.event!["event_date"];
-                        eventVM.eventPriceController.text = widget.event!["event_price"].toString();
-                        eventVM.eventLocationController.text = widget.event!["event_location"];
-                        eventVM.eventDescriptionController.text = widget.event!["event_description"];
-                        eventVM.eventOrganizerController.text = widget.event!["event_organizer"];
-                        eventVM.eventStartPriceController.text = widget.event!["event_start_price"];
-                        eventVM.eventEndPriceController.text = widget.event!["event_end_price"];
-                        eventVM.eventLinkController.text = widget.event!["event_link"];
-                        eventVM.credits_and_topics.value = widget.event!["credits_and_topics"];
-                        eventVM.online_event.value = widget.event!["online_event"];
-                        eventVM.city.value = "City";
-                        if(widget.event!["single_date"] == false){
-                          eventVM.multiple_dates.value = widget.event!["multiple_event_dates"];
-                          eventVM.single_date.value = false;
-                        } else {
-                          eventVM.eventAddressController.text = widget.event!["event_building"];
-                        }
+                        // suggestVM.nameController.text = widget.suggestions["eventName"];
+                        // suggestVM.correctionsController.text = widget.suggestions["corrections"];
+                        // suggestVM.complaintController.text = widget.suggestions["complaints"];
+                        // suggestVM.sugguestNewController.text = widget.suggestions["suggestNew"].toString();
+                        // suggestVM.suggestionController.text = widget.suggestions["suggestions"].toString();
 
 
-                        eventVM.event_id.value = widget.event!["event_id"];
+                        suggestVM.suggestion_id.value = widget.event!["event_id"];
 
                       },
                       style: ElevatedButton.styleFrom(
@@ -197,7 +223,7 @@ class _EventCardState extends State<EventCard> {
                         ),
                       ),
                       child: Text(
-                        'Edit',
+                        'View',
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w600,

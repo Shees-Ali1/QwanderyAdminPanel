@@ -341,10 +341,16 @@ class _AddUsersState extends State<AddUsers> {
                              itemBuilder: (context, index){
                                return Padding(
                                  padding:  EdgeInsets.only(top: index != 0 ? 8.0: 0),
-                                 child: Text(
-                                   userVM.roles[index],
-                                   overflow: TextOverflow.ellipsis,
-                                   style: jost400(headingFont, AppColors.primaryColor),
+                                 child: GestureDetector(
+                                   onTap: (){
+                                     userVM.role.value = userVM.roles[index];
+                                     userVM.showRole.value = false;
+                                   },
+                                   child: Text(
+                                     userVM.roles[index],
+                                     overflow: TextOverflow.ellipsis,
+                                     style: jost400(headingFont, AppColors.primaryColor),
+                                   ),
                                  ),
                                );
                              });
