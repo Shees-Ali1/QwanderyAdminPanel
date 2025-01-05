@@ -126,9 +126,10 @@ class EventController extends GetxController {
           'online_event': row[4].toString().toLowerCase() == "true",
           'event_building': row[5].toString().trim() == "No Address" ? "" : row[5].toString().trim(),
           'single_date': singleDate,
-          'event_dates': singleDate ? "" : eventDates[0], // Add parsed dates here
-          'event_start_price': int.tryParse(row[8].toString().trim()) ?? 0,
-          'event_end_price': int.tryParse(row[9].toString().trim()) ?? 0,
+          'event_date': singleDate ? "" : eventDates[0], // Add parsed dates here
+          "event_price": "${row[8].toString().trim()}-${row[9].toString().trim()}",
+          'event_start_price': row[8].toString().trim(),
+          'event_end_price': row[9].toString().trim(),
           'event_location': row[10].toString().trim(),
           'event_description': row[11].toString().trim(),
           'created_at': FieldValue.serverTimestamp(),
@@ -140,6 +141,7 @@ class EventController extends GetxController {
           'attending': [],
           'attended': [],
           'reviews': [],
+          "event_credits": "",
           "average_rating": 0,
         };
 
@@ -152,7 +154,6 @@ class EventController extends GetxController {
     return parsedEvents;
   }
 
-// Helper function to parse integer values, fallback to 0 if not a valid integer
   int _parseInt(dynamic value) {
     if (value is int) {
       return value; // If already an integer, return it as is
