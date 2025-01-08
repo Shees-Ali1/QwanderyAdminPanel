@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,8 @@ class _UserDetailsState extends State<UserDetails> {
   String searchQuery = '';
   final SidebarController sidebarController =Get.put(SidebarController());
   // Static user data for demonstration (replace with actual data later)
+
+
 
   double calculatedWith(double width) {
     if (width <= 430 && width > 300) return width * 0.95;
@@ -315,38 +318,37 @@ class _UserDetailsState extends State<UserDetails> {
                                       ),
                                     ),
                                   )),
-                                  DataCell(Container(
-                                    alignment: Alignment.center,
-                                    width: width <= 425
-                                        ? 70
-                                        : width <=768 && width > 425
-                                        ? 80
-                                        : width <=1024 && width > 768
-                                        ? 80
-                                        : width <= 1440 && width > 1024
-                                        ? 154
-                                        : width > 1440 && width <= 2570
-                                        ? 210 : 150,
-                                    child: Transform.scale(
-                                      // alignment: Alignment.center,
-                                      scale: width <= 425
-                                          ? 0.7
-                                          : width <= 768
-                                          ? 0.7
-                                          : width <= 1024
-                                          ? 0.7
-                                          : width <= 1440
-                                          ? 0.8
+                                  DataCell(
+                                    Container(
+                                      alignment: Alignment.center,
+                                      width: width <= 425
+                                          ? 70
+                                          : width <= 768 && width > 425
+                                          ? 80
+                                          : width <= 1024 && width > 768
+                                          ? 80
+                                          : width <= 1440 && width > 1024
+                                          ? 154
                                           : width > 1440 && width <= 2570
-                                          ? 1
-                                          : 1,
-                                      // isWideScreen?1:0.5, // Adjust the scale factor to increase/decrease size
-                                      child: GestureDetector(
-                                          onTap: (){
-                                            FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(user["uid"])
-                                                .update({
+                                          ? 210
+                                          : 150,
+                                      child: Transform.scale(
+                                        scale: width <= 425
+                                            ? 0.7
+                                            : width <= 768
+                                            ? 0.7
+                                            : width <= 1024
+                                            ? 0.7
+                                            : width <= 1440
+                                            ? 0.8
+                                            : width > 1440 && width <= 2570
+                                            ? 1
+                                            : 1,
+                                        child: GestureDetector(
+                                          onTap: () async {
+                                            try {
+                                              // Update Firestore to reset user details
+                                              await FirebaseFirestore.instance.collection('users').doc(user["uid"]).update({
                                                 'is_deleted': true,
                                                 "profile_pic": "",
                                                 'name': "Deleted User",
@@ -356,28 +358,29 @@ class _UserDetailsState extends State<UserDetails> {
                                                 "events": [],
                                                 "favourites": [],
                                                 "requested": [],
-                                                "email": "",
+                                                "email": "", // Clear the email so it can be reused
                                                 "location": "",
+                                              });
 
-                                                }).then(
-                                                    (_) {
+                                              // Delete the user from Firebase Authentication
+                                              User? currentUser = FirebaseAuth.instance.currentUser;
 
-                                                  // if(value == true){
-                                                  //   notificationVM.notifyUser(context: context, title: "Chat Blocked", message: "The Admin has blocked you from chatting with any personnel", userId: user.uid, type: "Admin notification");
-                                                  // } else {
-                                                  //   notificationVM.notifyUser(context: context, title: "Chat Restrictions Removed", message: "The Admin has removed restrictions on your Chats", userId: user.uid, type: "Admin notification");
-                                                  // }
-
-
-                                                  debugPrint('User ${user["uid"]} delete status updated to true');
-                                                }).catchError((error) {
-                                              debugPrint(
-                                                  'Failed to update user: $error');
-                                            });
+                                              if (currentUser != null) {
+                                                await currentUser.delete();
+                                                print("User deleted successfully.");
+                                              } else {
+                                                print("No user is currently signed in.");
+                                              }
+                                            } catch (error) {
+                                              debugPrint('Failed to delete user: $error');
+                                            }
                                           },
-                                          child: Icon(Icons.delete, size: 30, color: Colors.red,))
+                                          child: Icon(Icons.delete, size: 30, color: Colors.red),
+                                        ),
+                                      ),
                                     ),
-                                  )),
+                                  ),
+
                                 ],
                               );
                             }).toList(),

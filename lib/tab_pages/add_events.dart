@@ -35,6 +35,8 @@ class _AddEventsState extends State<AddEvents> {
   @override
   void initState(){
     super.initState();
+    eventVM.eventLinkController.clear();
+
     eventVM.eventImageController.clear();
     eventVM.eventNameController.clear();
     eventVM.eventDateController.clear();
@@ -69,7 +71,17 @@ class _AddEventsState extends State<AddEvents> {
       Get.snackbar(
         "Error",
         "All fields are required!",
-        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      eventVM.loading.value = false;
+      return;
+    }
+
+    if(eventVM.online_event.value == false && eventVM.eventAddressController.text.isEmpty){
+      Get.snackbar(
+        "Error",
+        "All fields are required!",
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
@@ -172,10 +184,9 @@ class _AddEventsState extends State<AddEvents> {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selectedDate = await showDatePicker(
-
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(), // Prevent selection of past dates
       lastDate: DateTime(2101),
       builder: (BuildContext context, Widget? child) {
         return Theme(
@@ -197,18 +208,19 @@ class _AddEventsState extends State<AddEvents> {
         );
       },
     );
+
     if (selectedDate != null) {
       // Format the selected date to your desired format
       String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
 
-      if(eventVM.single_date.value == true){
+      if (eventVM.single_date.value == true) {
         eventVM.eventDateController.text = formattedDate;
         eventVM.multiple_dates.clear();
       } else {
-        if(!eventVM.multiple_dates.contains(formattedDate)){
+        if (!eventVM.multiple_dates.contains(formattedDate)) {
           eventVM.multiple_dates.add(formattedDate);
-          eventVM.eventDateController.text = eventVM.eventDateController.text + formattedDate + ", ";
-
+          eventVM.eventDateController.text =
+              eventVM.eventDateController.text + formattedDate + ", ";
         }
       }
     }
@@ -618,7 +630,13 @@ class _AddEventsState extends State<AddEvents> {
                               const SizedBox(height: 5),
                               Obx((){
                                 if(eventVM.single_date.value == true){
-                                  return _buildInputField("Event Date", context, eventVM.eventDateController);
+                                  return GestureDetector(
+                                    onTap: (){
+                                      _selectDate(context);
+                                    },
+                                    child: AbsorbPointer(
+                                        child: _buildInputField("Event Date", context, eventVM.eventDateController)),
+                                  );
                                 } else if(eventVM.single_date.value == false && eventVM.multiple_dates.isNotEmpty){
                                   return SizedBox(
                                     height: 80,
