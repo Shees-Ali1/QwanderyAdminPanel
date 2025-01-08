@@ -45,11 +45,20 @@ class _AddUsersState extends State<AddUsers> {
   Future<void> _registerUser() async {
     userVM.loading.value = true;
 
+
+    if ( userVM.nameController.text.isEmpty ||  userVM.emailController.text.isEmpty ||  userVM.passController.text.isEmpty){
+      userVM.loading.value = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill all the fields.')),
+      );
+      return;
+    }
+
     if (_image == null) {
+      userVM.loading.value = false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please select a profile picture.')),
       );
-      userVM.loading.value = false; // Stop loading since no image is selected
       return;
     }
 
